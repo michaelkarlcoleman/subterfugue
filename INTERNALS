@@ -1,0 +1,45 @@
+This is internal documentation for subterfugue, possibly useful if you want to
+understand or extend it.  You (hopefully) don't need to know this if you only
+want to use it.
+
+
+
+process flags - 
+
+- parent : pid of the process' original parent (key absent if parent is not
+	   being followed, e.g., init)
+- children : list of pids of process' "original" children (i.e., the processes
+	     that would be its children if PTRACE weren't being used
+- pgid : process group id of this process
+- status : ('exited', exitstatus) if the process exited normally
+	   ('signaled', term-signal) if the process exited on a signal
+	   ('stopped', stop-signal) if the process has stopped on a signal
+	   absent if original parent not also being followed
+- newchild : if present, temporary scratchpad right after a
+	     fork/clone/vfork. The value is a 2-tuple: the pid of the new
+	     child's (original) parent, which can vary depending on whether or
+	     not CLONE_PARENT was used, and the tag used to mark the new
+	     child.
+- newchildflags : a dictionary mapping tags of new children to their flags,
+		  which will be assigned as each reports
+- startup : if present, the process is just starting, or just did an exec, and
+	    needs to skip one (redundant) stop
+- exiting : if present, the process has entered the _exit system call
+- exit_signal : signal that will be sent to parent when this process exits.
+		Linux considers a process to be a "clone" iff its exit signal
+		is not SIGCHLD.
+- annul : if present, a 2-tuple storing state for an annulled call, where the
+	  first arg is the syscall result (or 'waitsuspend' for a suspended
+	  wait call), and the second arg is the trick that annulled the call
+- exectrappending : if present, means that the process just did an exec, and
+		    is therefore expecting a SIGTRAP (which gets ignored)
+- waiting : if present, means the process is doing a pause to fake a wait, and
+	    is the args to that wait call
+- waitresult : if present, pid to be returned by wait when it returns
+- skiptrap : if present, the next SIGTRAP should be ignored (because we sent
+	     it)
+- sigreturn : if present, it means this process has begun a sigreturn or
+	   rt_sigreturn call (the call name is the value).
+- deathnotice : if present, a list of (pid, signal) pairs, where 'pid' is a
+	   child that has just died, and 'signal' is the signal that is to be
+	   delivered to the parent (i.e., SIGCHLD, unless clone is involved).

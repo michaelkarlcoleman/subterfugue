@@ -1,0 +1,7 @@
+SUBTERFUGUE NEWS
+
+* version 0.0 ("slaughter"):
+
+- First public release.
+- Pre-alpha quality, but seems to be able to follow Netscape Navigator and JDK
+  'appletviewer' under native Linux threads.

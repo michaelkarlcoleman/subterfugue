@@ -1,0 +1,26 @@
+SUBTERFUGUE installation
+
+	$Header$
+
+
+(While SUBTERFUGUE is in this pre-alpha state, it's assumed that it will be
+run directly out of the source directory.)
+
+
+INSTALLATION
+
+1.  Make sure you're running an acceptable kernel, with a patch, if
+    necessary.  (See the web site for more details.)
+
+2.  Do a 'make'.  If you have problems building the ptrace module, you may
+    have to replace 'Makefile.pre.in' from your Python distribution.
+
+3.  Put 'sf' in your PATH, or just invoke it in place ("./sf").  Try "sf -h";
+    if you get a usage message, you're doing pretty good.
+
+4.  You can test sf by doing something like
+
+	sf --trick=Trace date
+
+    The output should be somewhat reminiscent of strace.
+

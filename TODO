@@ -1,0 +1,49 @@
+SUBTERFUGUE to-do list
+
+Here's a list of things to improve or fix, not really in much of a particular
+order.
+
+
+- finish project web page docs (motivation)
+
+- nicer strace trick
+- man page (or whatever)
+- makefile improvements?
+- out of memory trick
+- disk full trick
+- timewarp trick
+- not doing the right thing if parent has a SIGCHLD handler and kid exits (no
+  signal gets sent???)
+- handle rapid parent or child death at clone
+- implement wait rusage
+- handle restarting sleep/nanosleep (sigsuspend?) (probably needs KERNEL PATCH)
+- disallow blocking (ignoring?) of SIGTRAP?
+- problem: ignored signals still cause syscall intr
+- deliver exit signal correctly to parent when it's not SIGCHLD (partially done)
+- sigreturn call causes problems?
+- need to handle lcall7, personality?
+- handle siginfo correctly?
+- blocking SIGCONT causes problems?  (doesn't look like it)
+- handle bogus args (bad path ptr, etc)
+- interactive sandbox trick (Gtk+ interface)
+- allow root to run as another user (like strace)
+- more elaborate Memory interface
+- profile/optimize python (try to continue processes ASAP)
+- nice general mapping classes (which map strings to values)
+- handle volatile memory problem (which allows evasion)
+- option for tricks to ignore some children??
+- do early detach of a process we know will die? (like strace)
+- paranoia trick (block anything that could steal control)
+- implement process attach
+- implement ptrace in kids (incl CLONE_PTRACE)
+- gdb trick
+- any use for separate callbefore and callafter masks?
+- callmask kernel patch
+- get wait working best effort, for the non-traced-parent case
+- trace/replay (a la MEC's qtrace) trick?
+- support replacement of a call with multiple calls (rather than just 0 or 1),
+  probably using RESTARTNOINTR
+- do something smarter about the exec SIGTRAP
+- handle SIGCONT or others sent to suspended kid (or prevent)
+ (this is a race--we don't want other processes CONTinuing traced kids that
+  are currently stopped in a PTRACE report

@@ -1,0 +1,21 @@
+SUBTERFUGUE credits
+
+	$Header$
+
+   Here are the credits for SUBTERFUGUE, in a format similar to the Linux
+   kernel CREDITS file.
+
+   Like that file, it is sorted by name and formatted to allow easy grepping
+   and beautification by scripts.  The fields are: name (N), email (E),
+   web-address (W), PGP key ID and fingerprint (P), description (D), and
+   snail-mail address (S).
+
+
+N: Mike Coleman
+E: mkc@subterfugue.org
+E: mkc@kc.net
+W: http://www.kc.net/~mkc
+D: original design and core implementation of SUBTERFUGUE
+S: 1705 N.E. 68th St.
+S: Gladstone, MO  64118
+S: USA
