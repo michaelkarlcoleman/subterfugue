@@ -49,7 +49,15 @@ class Box(Trick):
 	    'acct' : ('w',),
 	    'umount' : ('w',),
 	    'chroot' : ('r',),
-	    'symlink' : ('n', 'wl'),
+# Pavel thinks we need to require write access to the first arg here, because
+# of concern about
+# $ ln -s / /tmp/writable/haha
+# racing with
+# $ mkdir /tmp/writable/haha/tmp/delme2
+# but doesn't have a specific argument for why this will cause trouble.  Be
+# safe for now.
+#	    'symlink' : ('n', 'wl'),
+	    'symlink' : ('wl', 'wl'),
 	    'oldlstat' : ('rl',),
 	    'readlink' : ('rl',),
 	    'uselib' : ('r',),

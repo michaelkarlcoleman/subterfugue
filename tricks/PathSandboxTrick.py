@@ -87,12 +87,12 @@ class PathSandbox(Box):
 	path alllow_if_public read /
 	path allow read,write /dev/tty
 
-	On each operation, config is scanned from the beggining to the
-	end. If path from config is start of current path,
+	On each operation, config is scanned from the end to the
+	beginning. If path from config is start of current path,
 	access is allowed or denied, and no further processing is
 	done. Allow_if_public means that sandbox looks at access mode
-	of given object. If is not readable for everyone, file is scanned further
-	, otherwise access is allowed.
+	of given object. If is not readable for everyone, file is scanned further,
+	otherwise access is allowed.
 
 	Notice that allow_if_public is slightly dangerous:
 
@@ -102,8 +102,8 @@ class PathSandbox(Box):
 	subterfugue: allows access to /foo/bar
 
 	Solution is not using allow_if_public. (Unfortunately,
-	allow_if_public that said "denied" on non-existant files is
-	not terribly usefull: applications like to open non-existant
+	allow_if_public that said "denied" on non-existent files is
+	not terribly useful: applications like to open non-existent
 	files for example when they search path.)
 
 	names like this. [Notice that if you did chmod instead of
@@ -116,25 +116,45 @@ class PathSandbox(Box):
 	This syntax should be compatible with syntax used in janus.
 """
 
+    def addinto(self, list, path, sign):
+	if (('+' + path) in list) or (('-' + path) in list) or (('?' + path) in list):
+	    print 'Redundant or conflicting rule about ', path
+	    raise 'Redundant or conflicting rule'
+	return [ sign + path ] + list
+
     def oneline(self, line):
         print 'got line> ', line
 	line = re.sub('\\*', '.*', line)	# we want regexp-style stars
-	xpath = re.sub('^[a-z_]* [a-z_,]* ', '', line)
-
-	if re.match('^deny', line):            path = '-' + xpath
-	if re.match('^allow', line):           path = '+' + xpath
-	if re.match('^allow_if_public', line): path = '?' + xpath
+	path = re.sub('^[a-z_]* [a-z_,]* ', '', line)
+	if path[0] != '/':
+	    print 'Path ', path, ' is not absolute'
+	    raise 'Path not absolute'
+	sign = '!'
+	if re.match('^deny', line):            sign = '-'
+	if re.match('^allow', line):           sign = '+'
+	if re.match('^allow_if_public', line): sign = '?'
+	if sign == '!':
+	    print 'Syntax error on line ', line
+	    raise 'Syntax error in config file'
 
 	line = re.sub('^[a-z_]* ', '', line)
 
-	if re.match('^[a-z,]*write', line): self._write = [ path ] + self._write
-	if re.match('^[a-z,]*read', line):  self._read=   [ path ] + self._read
-	if re.match('^[a-z,]*ask', line):   self._ask =   [ path ] + self._ask
+	# Config line looks like 'path allow read,write /'. Error detection is
+	# not perfect: path deny read,blabol will slip through syntax check.
+	if re.match('^[a-z,]*write', line): self._write = self.addinto(self._write, path, sign)
+	else:
+	    if re.match('^[a-z,]*read', line): self._read = self.addinto(self._read, path, sign)
+	    else:
+		if re.match('^[a-z,]*ask', line): self._ask = self.addinto(self._ask, path, sign)
+		else:
+		    print 'Syntax error on line ', line
+		    raise 'Syntax error in config file (2)'
 
     def __init__(self, options):
 	global configfile
 	Box.__init__(self, options)
 	self._quiet = 0
+# Common code, again
 	print 'SANDBOX MYPID ', os.getpid()
 	signal.signal(signal.SIGHUP,  lambda a, b, t = self: user_signal(a,b,t))
 	signal.signal(signal.SIGTERM, lambda a, b, t = self: user_signal(a,b,t))

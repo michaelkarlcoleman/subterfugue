@@ -121,6 +121,30 @@ class Trick:
         """
         pass
 
+    def tricksignal(self, signal):
+        """This method is invoked when SUBTERFUGUE *itself* receives a signal,
+        iff that signal is present in the tricksignalmask.
+
+        This method could be used to have an external program (one not being
+        followed by SUBTERFUGUE) communicate with a trick.
+
+        The 'signal' parameter is the symbolic name, as for the 'signal'
+        method.  This method should return None.
+        """
+        pass
+    
+    def tricksignalmask(self):
+        """This method is typically invoked once when the trick is created.
+        It must return None or a dictionary whose keys are the symbolic names
+        of signals (e.g., 'SIGHUP').  In the latter case, the trick will
+        receive 'tricksignal' calls for the mentioned signals when they are
+        received by SUBTERFUGUE.
+
+        This method should return the same value every time it is invoked on a
+        particular Trick instance.
+        """
+        pass
+
     def exit(self, pid, exitstatus, signal):
         """This method is invoked once for each child process as it terminates.
 

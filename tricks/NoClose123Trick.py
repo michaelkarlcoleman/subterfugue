@@ -31,6 +31,7 @@ class NoClose123(Trick):
         elif call == 'dup2':
 	    fd = args[1]
 	    if fd == 123:			# Is it fd we guard?
+		print 'NoClose: dup2 tried to allocate fd 123'
         	return (None, -errno.EPERM, None, None)
             return ((args[0], fd), None, None, None)
 
@@ -38,6 +39,7 @@ class NoClose123(Trick):
 	    fd = args[0]
 
 	    if fd == 123:			# Is it fd we guard?
+		print 'NoClose: dup2 tried to mess with fd 123'
         	return (None, -errno.EPERM, None, None)
             return ((1, 1), None, None, None)
 

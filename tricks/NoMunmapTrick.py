@@ -23,6 +23,8 @@ class NoMunmap(Trick):
 	don't want processes to play with.  
 """
 
+# FIXME: Is it possible to replace with mmap?
+
     def __init__(self, options):
 	self.start = options.get('start', scratch.base())
 	self.end   = options.get('end',   scratch.base() + scratch.safe_len())
@@ -34,9 +36,11 @@ class NoMunmap(Trick):
             return (1, None, None, None)
 
     def callbefore(self, pid, call, args):
-	if call == 'munmap' or call == 'mremap':
+	if call == 'mmap':
+	    assert 0, 'Impossible: mmap should have been translated to mmap2'
+	if call == 'munmap' or call == 'mremap' or call == 'mmap2':
 	    return self.check(args[0], args[1])
 	assert 0, 'Unknown syscall?'
 
     def callmask(self):
-        return { 'munmap' : 1, 'mremap' : 1 }
+        return { 'munmap' : 1, 'mremap' : 1, 'mmap' : 1, 'mmap2' : 1 }

@@ -34,6 +34,7 @@ from version import VERSION
 
 import Trick
 
+import signalmap
 from p_linux_i386 import *
 
 # FIX: for jdike test
@@ -260,6 +261,31 @@ def handle_death(pid, allflags, flags, tricklist, exitstatus, termsig):
     else:
         all_kids_dead(tricklist)
 
+def handle_sf_signal(signo, frame, tricks):
+    """Send a signal received by sf itself to the interested tricks."""
+
+    # discard frame -- it's not part of the interface because this may be
+    # reimplemented in another language
+
+    signal = signalmap.lookup_name(signo)
+    for trick in tricks:
+        assert not trick.tricksignalmask \
+               or trick.tricksignalmask().has_key(signal)
+        trick.tricksignal(signal)
+
+def set_trick_signal_handlers(tricklist):
+    sigs = {}
+    for tricktuple in tricklist:
+        trick = tricktuple[0]
+        tricksigs = trick.tricksignalmask()
+        if tricksigs:
+            for sig in tricksigs.keys():
+                sigtricks = sigs.get(sig, [])
+                sigs[sig] = sigtricks + [trick]
+    for sig, tricks in sigs.items():
+        signal.signal(signalmap.lookup_number(sig),
+                      lambda s, f, t = tricks: handle_sf_signal(s, f, t))
+
 def cleanup(tricklist):
     for trick, callmask, signalmask in tricklist:
         trick.cleanup()
@@ -363,6 +389,8 @@ def do_main(allflags):
 
     set_weedout_masks(tricklist)
 
+    set_trick_signal_handlers(tricklist)
+
     global fastmainloop
     lastpid = -1
 
@@ -392,8 +420,9 @@ def do_main(allflags):
                          " __WALL required (or try --nowall hack)"
                          % sys.argv[0])
             elif e.errno == errno.EINTR:
-                print "%s wait error: received signal" % sys.argv[0]
                 # FIX: what should we really do here??
+                if debug():
+                    print "%s wait error: received signal" % sys.argv[0]
                 continue
             else:
                 sys.exit("%s wait error [%s]" % (sys.argv[0], e))

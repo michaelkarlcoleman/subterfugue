@@ -128,6 +128,8 @@ _callaccess = {
     'acct' : ('w',),
     'umount' : ('w',),
     'chroot' : ('r',),
+# maybe should be this instead?  (see BoxTrick)
+#   'symlink' : ('wl', 'wl'),
     'symlink' : (None, 'wl'),
     'oldlstat' : ('rl',),
     'readlink' : ('rl',),

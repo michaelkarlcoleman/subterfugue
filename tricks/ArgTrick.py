@@ -78,6 +78,9 @@ class Arg(Box):
 	    tofree[i], cargs[i] = scratch.alloc_str(p)
 
 	if call=='open':
+# FIXME:
+# if we allow user to do ln -s a b without permissions for a, and
+# user tries to access /tmp/b/local/bin...
 #	    cargs[1] = cargs[1] | os.O_NOFOLLOW
 	    cargs[1] = cargs[1] | 0400000	# Not supported by python, yet. This is true for 386
 
