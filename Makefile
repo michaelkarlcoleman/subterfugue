@@ -54,8 +54,8 @@ dist ::
 		&& tar cfh - --exclude=CVS $(distdir) \
 		| gzip --best > $(distfile)
 	rm -f ../$(distdir)
-	@echo 'Did you do a "cvs update/commit" first???'
-	@echo 'Do a "cvs rtag -FR release-$(version) <modules>'
+	@echo 'Did you do a "cvs update/commit" first?'
+	@echo 'Do a "cvs rtag -FR release-$(version) <modules>"'
 
 pushdist ::
 	[ -e ../$(distfile) -a -e ../$(debfile) ] || exit 1
@@ -89,6 +89,8 @@ dpkg ::
 	cd .. && f=`ls -1t subterfugue*.changes | head -1` \
 		&& echo $$f && lintian -i $$f
 	fakeroot debian/rules clean
+	@cd .. && f=`ls -1t subterfugue*.changes | head -1` \
+		&& echo 'Do a "dupload --to master '$$f'"'
 
 clean ::
 	-rm -f sf dsf
