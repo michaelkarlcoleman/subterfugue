@@ -1,6 +1,13 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
+Version 0.2.1 ("phantom")
+
+* Fix a bug that makes pokes to memory fail (e.g., Rot13 trick).
+
+* Port to Python 2.1 and change to conform to new Debian Python Policy.
+
+
 Version 0.2 ("tiger")
 
 * Fixes to make SUBTERFUGUE work again with the 2.4 kernel.  (new system

@@ -16,7 +16,8 @@ PYTHON_COMMAND = python
 SUBTERFUGUE_ROOT = /usr/lib/subterfugue
 PYTHON_SITE = /usr/lib/python$(PYTHON_VERSION)/site-packages
 
-PYTHON_MODULES = modules/ptracemodule.so modules/svr4module.so
+PYTHON_MODULES = modules/ptracemodule.so modules/svr4module.so \
+			modules/linuxmodule.so
 SUBTERFUGUE_MODULES = modules/_subterfuguemodule.so
 MODULES = $(PYTHON_MODULES) $(SUBTERFUGUE_MODULES)
 
@@ -82,7 +83,7 @@ install ::
 	install sf $(DESTDIR)/usr/bin
 	install scripts/herekitty $(DESTDIR)/usr/bin
 	install doc/*.1 $(DESTDIR)/usr/share/man/man1
-	install README NEWS CREDITS INSTALL INTERNALS \
+	install README NEWS CREDITS INTERNALS \
 		$(DESTDIR)/usr/share/doc/subterfugue
 
 install_compiled :: install

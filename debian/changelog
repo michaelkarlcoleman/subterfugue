@@ -7,7 +7,7 @@ subterfugue (0.2.1-1) unstable; urgency=high
   * fix compiler warnings
   * fix broken TimeWarp example
 
- -- Mike Coleman <mkc@mathdogs.com>  Sun, 25 Nov 2001 22:21:23 -0600
+ -- Mike Coleman <mkc@debian.org>  Sun, 25 Nov 2001 22:21:23 -0600
 
 subterfugue (0.2-1) unstable; urgency=medium
 

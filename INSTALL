@@ -5,12 +5,16 @@ SUBTERFUGUE installation
 
 INSTALLATION
 
-1.  Make sure you're running an acceptable kernel.  Vanilla kernels version
-    2.3.99-pre1 and later will work, albeit a bit slowly (because they use the
-    wait channel hack).  Patches to avoid the wait channel hack or to run on
-    earlier 2.3 kernels are available from the SUBTERFUGUE web site.  You also
-    need python 1.5.2; newer versions probably also work but haven't yet been
-    tested.
+1.  Make sure you're running an acceptable kernel, meaning version 2.4 or
+    later.
+
+    (Vanilla kernels version 2.3.99-pre1 and later will work, albeit a bit
+    slowly (because they use the wait channel hack).  Patches to avoid the
+    wait channel hack or to run on earlier 2.3 kernels are available from the
+    SUBTERFUGUE web site.)
+
+    You also need python 1.5.2 or later; newer versions probably also work but
+    haven't yet been tested.
 
 2.  Do a 'make'.  If you have problems building the ptrace module, you may
     have to replace 'Makefile.pre.in' from your Python distribution.
