@@ -54,13 +54,15 @@ def set_skipcallafter(pid):
 def real_kill(pid):
     # This is ugly, but required: if someone tries to do an syscall, simple kill -9
     # will _not_ prevent that syscall from executing
-    poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
+    os.kill(pid, 9)
+    try:
+	poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
+    except:
+	print "Warning, clearing of arguments failed"
     try:
         ptrace.pokeuser(pid, ORIG_EAX, _badcall)
     except:
 	print "Warning, set to badcall failed"
-	pass
-
     ptrace.kill(pid)
 
 # XXX: this doesn't belong in a platform-specific file
