@@ -1,0 +1,362 @@
+<html>
+<head>
+<title>Subterfugue examples and help</title>
+</head>
+<body>
+<!-- version 0.1 -->
+<!-- Text from the subterfuge module writers -->
+<!-- Mike Coleman mkc@users.sourceforge.net -->
+<!-- Pavel Machek pavel@ucw.cz -->
+<!-- Compiled and formatted by William Stearns, wstearns@pobox.com -->
+<!-- Released under the GPL, as the original text is. -->
+
+<h2>ArgTrick</h2>
+<p>Allows you to do regexp substitution on paths passed to system
+calls. This can be used to generate something chroot-like (for
+example), or to fake file you can not overwrite.</p>
+
+Examples:
+<pre>
+--trick=Arg:s1=['^/'];s2=['/strange_chroot_jail']
+--trick=Arg:s1=['^/etc/passwd'];s2=['/etc/termcap']
+</pre>
+
+<h2>BoxTrick</h2>
+<p>Unknown</p>
+
+
+<h2>CountTrick</h2>
+<p>Counts the system calls and signals for each process and reports after
+all processes have terminated.</p>
+
+
+<h2>DelayTrick</h2>
+<p>Puts a delay before each system call.  The 'delay' parameter specifies
+the delay in seconds (as a float).  The default delay is one second.</p>
+
+
+<h2>DosTrick</h2>
+<p>Tries to prevent DoS attacks.</p>
+
+<p>The parameters 'maxmem'
+and 'maxproc' each specify limit (on memory and number of
+processes). If that limit is exceeded, application is
+killed. Memory limit is expressed in megabytes. Default values
+are 100 megabytes and 50 processes allowed.</p>
+
+Example:
+<pre>
+--trick=DoS:maxmem=100;maxproc=50
+</pre>
+
+<p>This is tricky. We do not want to duplicate kernel's memory
+metering, and we do not want to ask kernel how much memory
+applications occupy after each change. Therefore, we do
+tricks: we maintain variable grace, and try to somehow compute
+how much memory in worst case processes could consume. If it
+is below grace, we lower grace and just let process
+allocate. If not, we do full recomputation and set grace back
+to some value.</p>
+
+<p>mmap and brk operations are pretty common, still need to be
+watched by this trick. That means that slowdown from this
+trick is big.</p>
+
+
+<h2>FixFlashTrick</h2>
+<p>This works around a bug in the Macromedia Flash plugin which will
+cause Netscape to hang when a Flash object is encountered but /dev/dsp
+cannot be opened (because it's in use, perhaps by esd).  Access will
+fail (and there will be no Flash sound).</p>
+
+
+<h2>GoodDiscTrick</h2>
+<p>Unknown</p>
+
+
+<h2>GuessPasswordTrick</h2>
+<p>This is exceedingly lame, but sometimes I forget the exact spelling of a
+password I haven't used in a long time.  It's pretty easy to whip up a
+little script (see example) to cycle through all the combinations, but some
+programs only take passwords from /dev/tty, making them hard to script.
+This trick does the stuffing.</p>
+
+<pre>
+#!/bin/sh
+for i in I i; do
+    for o in o 0; do
+        for p in '' . '?'; do
+sf --tri=GuessPassword":guess='${i}s that my passw${o}rd${p}\n'" pgp -d /tmp/foo.pgp
+        done
+    done
+done
+</pre>
+
+
+<h2>NetFailTrick</h2>
+<p>Causes calls to connect to fail with error EHOSTUNREACH, and calls to
+listen to fail with EOPNOTSUPP.</p>
+
+
+
+<h2>NetThrottleTrick</h2>
+<p>Limit network bandwidth usage, by delaying network I/O calls.  This
+trick has a Gtk GUI to allow interactive control of the bandwidth
+limit.  An optional parameter 'bps' sets the initial limit, in bytes
+per second.</p>
+
+<p>If the GUI is closed by the user (or should crash), the application
+will continue with the last set limit.  If the limit was 0, however,
+it will be reset to unlimited (rather than leaving the application
+hung).</p>
+
+
+
+<h2>NetTrick</h2>
+<p>Restricts network access.</p>
+
+<p>Anyway, you can now filter network access in term of what
+addresses are passed and where. You can pass filter=['-TCP 195\.113.*']
+to dissallow any connections to 195.113 network. (Notice that passed
+value is regexp and that it is allow/deny trick. [I know that
+using regexps for network matching is not ideal, but you'll probably
+want to limit to a small set of machines, anyway, so it should not hurt
+much.]</p>
+
+<p>Notice that connect and bind is not separated. It probably should be.</p>
+							
+
+<h2>NoClose123Trick</h2>
+<p>Do not let processes close fd 123.  (see Scratch trick)</p>
+
+
+
+<h2>NoKillTrick</h2>
+<p>Do not let traced processes to kill outside sandbox. Do not
+allow them to use ptrace(), since ptrace() does not work inside
+sandbox, and could be used to do anything outside sandbox.</p>
+
+<p>Unless kernel goes _really_ crazy (like an out-of-memory situation)
+and kills process without telling us (which just should not happen),
+this is safe.  Process can not go away before we are notified,
+therefore there are no races with pids wrapping around.</p>
+			
+
+
+<h2>NoMunmapTrick</h2>
+<p>Does not let traced process play with force-mmaped memory from scratch module.</p>
+
+<p>Alternatively, pass start and end addresses of memory you
+don't want processes to play with.</p>
+
+
+
+
+<h2>ParanoiaTrick</h2>
+<p>This trick is truly paranoid: it denies all syscalls it does
+not know because they might be potentially harmfull.</p>
+
+
+<h2>PathSandboxTrick</h2>
+<p>Restricts filesystem access to paths specified by config file.</p>
+	
+<p>Format of config file is as follows:</p>
+<pre>
+path {allow, deny, allow_if_public} {read,write,ask} path
+</pre>
+<p>You are allowed to create lines like this:</p>
+<pre>			
+path alllow_if_public read /
+path allow read,write /dev/tty
+</pre>
+
+<p>On each operation, config is scanned from the beggining to the
+end. If path from config is start of current path,
+access is allowed or denied, and no further processing is
+done. Allow_if_public means that sandbox looks at access mode
+of given object. If is not readable for everyone, file is scanned further
+, otherwise access is allowed.</p>
+
+<p>Notice that allow_if_public is slightly dangerous:</p>
+
+<pre>
+application: open /foo/bar
+subterfugue: checks that /foo/bar is readable from other thread
+you: rm /foo/bar; umask 700; echo "secret data" > /foo/bar
+subterfugue: allows access to /foo/bar
+</pre>
+
+<p>Solution is not using allow_if_public. (Unfortunately,
+allow_if_public that said "denied" on non-existant files is
+not terribly usefull: applications like to open non-existant
+files for example when they search path.)<p>
+
+<p>names like this. [Notice that if you did chmod instead of
+rm&umask, you'd be in danger even without subterfugue.]</p>
+
+<p>If you add "allow ask /" line into config file, then "denied"
+accesses are not really denied, but user is prompted whether
+or not he really wants to perform given operation.</p>
+
+<p>This syntax should be compatible with syntax used in janus.</p>
+
+
+<h2>Rot13Trick</h2>
+<p>Does a rot13 translation on all output done with the 'write' syscall.</p>
+
+
+<h2>ScratchTrick</h2>
+<p>Provides a safe copy area for arguments.</p>
+
+<p>This trick should be as innermost (rightmost) as possible.</p>
+
+<p>Notice that without this trick, and appropriate tricks to
+actually copy arguments (ArgTrick), traced applications may play nasty
+games with volatile memory, resulting in TraceTrick lying,
+SimplePathSandbox not being effective, etc. However,
+application would have to deliberately play races and in case of
+application being nasty of purpose you have to be very cautious.</p>
+
+
+<h2>SignalTrick</h2>
+<p>Ignore or map signals</p>
+
+
+<h2>SimplePathSandboxTrick</h2>
+<p>Restricts filesystem access to specified paths.  The parameters 'read'
+and 'write' each specify a list of paths; for each path, access will
+be given to the file or directory tree specified.</p>
+
+Examples:
+<pre>
+--trick=SimplePathSandbox:read=['/'];write=['.']
+#Limit read and write ability
+sf --trick=SimplePathSandbox:"read=['/'];write=['/dev/tty']" bash
+</pre>
+
+<p>(Note that '~' is not interpreted specially.)</p>
+
+<p>Each path can be prefixed by a '-' to indicated that access to the
+path should be denied.  This example would allow '/home' to be read,
+but not anything under '/home/pavel'.</p>
+
+Example:
+<pre>
+--trick=SimplePathSandbox:read=['-/home/pavel','/home']
+</pre>
+
+<p>The first applicable path determines whether or not access is
+allowed.  If no path is applicable, access is denied.</p>
+
+<p>A diagnostic will be output each time an action is denied unless the
+'quiet' parameter is set to a true value.</p>
+
+<p>Network access will be blocked unless the parameter 'net' is 1; if it
+is, access to all Unix domain sockets will be possible, even if not
+allowed by the 'read' or 'write' list (yes, this is a wart).</p>
+
+<p>(This trick blocks the rarely used 'quotactl' and 'nfsservctl' calls,
+which are tricky to handle correctly.)</p>
+	
+
+<h2>StdioTrick</h2>
+<p>This trick is truly paranoid: it denies all syscalls it does
+not know because they might do something wrong.</p>
+
+<p>Code here is very ugly: we want to want even on unpatched
+2.2.X. Unpatched 2.2.X can not deny syscall, so we at least
+patch all arguments to zeros on syscall being denied.  This
+could be circumvented if RAM was mapped on page 0; therefore
+you should use NoMunmapTrick to prevent messing with page 0.</p>
+
+
+<h2>ThrottleIOTrick</h2>
+<p>Delays read and write calls so that the average I/O rate (via these
+calls) is limited.  The 'bps' parameter is required and is the I/O
+limit, in bytes per second.</p>
+
+
+<h2>ThrottleReadIOTrick</h2>
+<p>Delays read calls so that the average I/O rate (via these calls) is
+limited.  The 'bps' parameter is required and is the I/O limit, in
+bytes per second.</p>
+
+
+<h2>TimeWarpTrick</h2>
+<p>Warp time to adjust the time considered to be "now" and/or to run
+slower or faster than true elapsed time. </p>
+
+<p>The float parameter 'delta' adjusts "now" relatively.  So, for
+example, a delta of -10.5 would cause gettimeofday to return a time
+ten and a half seconds earlier than the true time.</p>
+
+<p>The float parameter 'now' adjusts "now" absolutely.  It is an absolute
+count of seconds since the epoch.  Such values can be had from the
+date command, like so</p>
+
+<pre>
+--tri=TimeWarp:now=$(date --date='May 7' +%s)
+</pre>
+
+<p>or</p>
+
+<pre>
+--tri=TimeWarp:now=$(date --date='one week ago' +%s)
+</pre>
+
+<p>The float parameter 'w' is the warp factor.  A factor of 1.0
+corresponds to normal execution.  A factor of 2.0 will make time pass
+at twice normal speed for the program; to you, it will seem to run
+"faster" (e.g., sleep(2) will actually sleep half as long, time(2)
+will return greater than normal value, etc.)  The factor may be less
+than 1.0 to make time pass more slowly.  It must be greater than 0.</p>
+
+<p>Warp factors below 1 will probably be better tolerated by the
+application.</p>
+
+<p>(Keep in mind that SUBTERFUGUE itself makes programs run somewhat
+slower, so the warp factors are relative.)</p>
+
+<p>Any or all options can be combined.</p>
+								
+<pre>
+#Clock runs slow
+sf --trick=TimeWarp:w=0.1 xclock &
+
+#Clock runs fast
+sf --trick=TimeWarp:w=100 xclock &
+
+#Run command in the past
+sf --trick=TimeWarp:now=$(date --date='1 hour ago' +%s) xclock &
+sf --trick=TimeWarp:now=$(date --date='2 hours ago' +%s) xclock &
+
+sf --trick=TimeWarp:now=$(date --date='1 week ago' +%s) xclock &
+sf --trick=TimeWarp:now=$(date --date='4 weeks ago' +%s) xclock &
+</pre>								
+
+
+<h2>TraceTrick</h2>
+<p>Traces system calls, signals, and process exit (similar to strace(1)).
+The 'call' parameter may specify a list of system call names; in this
+case, calls not in the list will not be traced.</p>
+
+<pre>
+#Trace app
+sf --trick=Trace date
+</pre>
+
+<h2>UmaskTrick</h2>
+<p>Forces sandboxed application not to use certain file
+permissions.  For example does not allow apps to use setuid bit.</p>
+
+<hr>
+<p>Compiled by William Stearns &lt;wstearns@pobox.com&gt;</p>
+<p>Text is Copyright 200 Mike Coleman &lt;mkc@users.sourceforge.net&gt; and Pavel Machek &lt;pavel@ucw.cz&gt;</p>
+
+<p><i>Last edited: 11/15/01</i></p>
+<p><i>Best viewed with something that can show web pages... &lt;grin&gt;</i></p>
+</body>
+
+
+
+	
