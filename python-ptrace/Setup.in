@@ -1,4 +1,0 @@
-*shared*
-
-ptrace ptracemodule.c
-sfptrace sfptracemodule.c

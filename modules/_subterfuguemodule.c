@@ -1,12 +1,10 @@
-/* SUBTERFUGUE-specific ptrace functions */
+/* SUBTERFUGUE acceleration functions */
 
 /* $Header$ */
 
 /*
  * mainloop speed-up code from Pavel Machek (3/00)
- *
  * added wait channel hack (3/00)
- *
  */
 
 #include <sys/ptrace.h>
@@ -122,13 +120,13 @@ atcallstop(int pid, int stopsig) {
   return 1;			/* pretty good guess */
 }
 
-static char sfptrace_atcallstop__doc__[] = 
+static char subterfugue_atcallstop__doc__[] = 
 "atcallstop(pid, stopsig) -> boolean\n\
 Indicate whether the process pid, which is stopped with stopsig, is at a\n\
  system call stop (as opposed to a signal stop).";
 
 static PyObject *
-sfptrace_atcallstop(PyObject *self, PyObject *args)
+subterfugue_atcallstop(PyObject *self, PyObject *args)
 {
   int pid, stopsig, result;
 
@@ -142,14 +140,14 @@ sfptrace_atcallstop(PyObject *self, PyObject *args)
 }
 
 
-static char sfptrace_mainloop__doc__[] = 
+static char subterfugue_mainloop__doc__[] = 
 "mainloop(pid) -> (wpid, status, beforecall)\n\
 Run the optimized main loop until something interesting happens.\n\
 Process 'pid' must already be known (in allflags), and 'insyscall' and\n\
 'startup' must be false.";
 
 static PyObject *
-sfptrace_mainloop(PyObject *self, PyObject *args)
+subterfugue_mainloop(PyObject *self, PyObject *args)
 {
   int pid, wpid, status, scno, eax, waitchannelhack;
   int beforecall = -1;
@@ -227,13 +225,13 @@ giveup:
   return Py_BuildValue("(iii)", wpid, status, beforecall);
 }
 
-static char sfptrace_setignorecall__doc__[] = 
+static char subterfugue_setignorecall__doc__[] = 
 "setignorecall(callnumber, ignore) -> None\n\
 Indicate whether callnumber is to be ignored.  By default, each call is not\n\
 ignored."; 
 
 static PyObject *
-sfptrace_setignorecall(PyObject *self, PyObject *args)
+subterfugue_setignorecall(PyObject *self, PyObject *args)
 {
   int callnumber, ignored;
 
@@ -252,8 +250,8 @@ sfptrace_setignorecall(PyObject *self, PyObject *args)
 
 /* List of functions defined in the module */
 
-static PyMethodDef sfptrace_methods[] = {
-#define method(x) { #x, sfptrace_##x, METH_VARARGS, sfptrace_##x##__doc__ }
+static PyMethodDef subterfugue_methods[] = {
+#define method(x) { #x, subterfugue_##x, METH_VARARGS, subterfugue_##x##__doc__ }
 	method(atcallstop),
 	method(mainloop),
 	method(setignorecall),
@@ -264,15 +262,15 @@ static PyMethodDef sfptrace_methods[] = {
 /* Initialization function for the module */
 
 DL_EXPORT(void)
-     initsfptrace()
+init_subterfugue()
 {
   PyObject *m, *d;
 
   /* Create the module and add the functions */
-  m = Py_InitModule("sfptrace", sfptrace_methods);
+  m = Py_InitModule("_subterfugue", subterfugue_methods);
 
   /* Add some symbolic constants to the module */
   d = PyModule_GetDict(m);
-  ErrorObject = PyErr_NewException("sfptrace.error", NULL, NULL);
+  ErrorObject = PyErr_NewException("_subterfugue.error", NULL, NULL);
   PyDict_SetItemString(d, "error", ErrorObject);
 }

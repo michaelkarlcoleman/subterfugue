@@ -14,7 +14,7 @@ import sys
 import types
 
 import ptrace
-import sfptrace
+import _subterfugue
 
 from debug import debug
 
@@ -94,7 +94,7 @@ def set_weedout_masks(tricklist):
 
     for n in xrange(ncall):
 	if _call_weedout_mask[n] == 0:
-	    sfptrace.setignorecall(n, 1)
+	    _subterfugue.setignorecall(n, 1)
 
 
 def peek_args(pid, nargs):

@@ -3,27 +3,42 @@
 #	$Header$
 
 
-.PHONY : all compilepy dist pushdist clean distclean
+.PHONY : all compilepy dist pushdist install clean distclean
 
+# installation directory
+DESTDIR =
 
-MODULES = python-ptrace/ptracemodule.so python-ptrace/sfptracemodule.so 
+SUBTERFUGUE_ROOT = /usr/lib/subterfugue
+PYTHON_SITE = /usr/lib/python1.5/site-packages
 
-all : $(MODULES) sf compilepy
+PYTHON_MODULES = modules/ptracemodule.so modules/svr4module.so
+SUBTERFUGUE_MODULES = modules/_subterfuguemodule.so
+MODULES = $(PYTHON_MODULES) $(SUBTERFUGUE_MODULES)
+
+all :: $(MODULES) sf dsf compilepy
 
 sf : sf.in
-	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' $< > $@ \
-		|| rm $@
+	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$(SUBTERFUGUE_ROOT)'|' \
+		$< > $@ || rm $@
+	chmod a+rx $@
+
+# development version of 'sf'
+dsf : sf.in
+	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' \
+	    -e 's|#DSF#||' \
+		$< > $@ || rm $@
 	chmod a+rx $@
 
 compilepy ::
 	python    -c 'import compileall; compileall.main()' .
 	python -O -c 'import compileall; compileall.main()' .
 
-python-ptrace/ptracemodule.so : python-ptrace/ptracemodule.c
-	cd python-ptrace && make -f Makefile.pre.in boot && make
-
-python-ptrace/sfptracemodule.so : python-ptrace/sfptracemodule.c
-	cd python-ptrace && make -f Makefile.pre.in boot && make
+modules/%.so : modules/%.c
+	cd modules \
+	&& (test -e Makefile.pre.in \
+	    || ln -s /usr/lib/python1.5/config/Makefile.pre.in) \
+	&& make -f Makefile.pre.in boot \
+	&& make
 
 version := $(shell python version.py | awk '{ print $$1 }')
 distdir := subterfugue-$(version)
@@ -36,16 +51,33 @@ dist ::
 		| gzip --best > $(distfile)
 	rm -f ../$(distdir)
 	@echo 'Did you do a "cvs update/commit" first???'
+	@echo 'Do a "cvs rtag -FR release-$(version) <modules>'
 
 pushdist ::
 	cd .. && ncftpput -V download.sourceforge.net /incoming $(distfile)
 
+install ::
+	install -d $(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
+	install -d $(DESTDIR)$(PYTHON_SITE)
+	install -d $(DESTDIR)/usr/bin
+	install -d $(DESTDIR)/usr/share/man/man1
+	install -d $(DESTDIR)/usr/share/doc/subterfugue
+	install --mode=444 *.{py,pyo,pyc} $(DESTDIR)$(SUBTERFUGUE_ROOT)
+	install --mode=444 tricks/*.{py,pyo,pyc} \
+		$(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
+	install $(PYTHON_MODULES) $(DESTDIR)$(PYTHON_SITE)
+	install $(SUBTERFUGUE_MODULES) $(DESTDIR)$(SUBTERFUGUE_ROOT)
+	install sf $(DESTDIR)/usr/bin
+	install doc/*.1 $(DESTDIR)/usr/share/man/man1
+	install README NEWS CREDITS INSTALL INTERNALS \
+		$(DESTDIR)/usr/share/doc/subterfugue
+
 clean ::
-	-rm -f sf
+	-rm -f sf dsf
 	-rm -f *.py[co] *~
-	-cd python-ptrace && rm -f *~ *.o *.so Makefile{,.pre} sedscript config.c
+	-cd modules && rm -f *~ *.o *.so Makefile{,.pre} sedscript config.c
 	-cd tricks && rm -f *.py[co] *~
 	-cd test && $(MAKE) clean
 
 distclean :: clean
-	-cd python-ptrace && rm -f Setup
+	-cd modules && rm -f Setup Makefile.pre.in

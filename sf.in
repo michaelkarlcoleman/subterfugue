@@ -4,10 +4,11 @@
 #	$Header$
 
 export SUBTERFUGUE_ROOT=/path-where-subterfugue-lives
+#DSF#export PYTHONPATH=$SUBTERFUGUE_ROOT/modules:$PYTHONPATH
 
 PYFLAGS=
 
 # uncomment to optimize
-#PYFLAGS=-O
+PYFLAGS=-O
 
 exec python $PYFLAGS $SUBTERFUGUE_ROOT/subterfugue_.py ${1+"$@"} $SUBTERFUGUE_ROOT

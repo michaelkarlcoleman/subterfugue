@@ -320,53 +320,6 @@ ptrace_settracesysgood(PyObject *self, PyObject *args)
 #endif
 
 
-/* These really belong in the base Python libraries, but for now, it's getting
- * stuffed here.  (FIX)
- */
-
-static char ptrace_getpgid__doc__[] =
-"getpgid(pid) -> pgid\n\
-Get the process group id of the specified process.  If pid is 0, return the\
- pgid of the caller";
-
-static PyObject *
-ptrace_getpgid(PyObject *self, PyObject *args)
-{
-  pid_t pid, pgid;
-
-  if (!PyArg_Parse(args, "(i)", &pid))
-    return NULL;
-  
-  pgid = getpgid(pid);
-
-  if (pgid == -1)
-    return posix_error();
-  return Py_BuildValue("i", pgid);
-}
-
-
-static char ptrace_fchdir__doc__[] =
-"fchdir(fd) -> None\n\
-Change the current working directory to directory opened as fd.";
-
-static PyObject *
-ptrace_fchdir(PyObject *self, PyObject *args)
-{
-  int fd;
-  long int result;
-
-  if (!PyArg_Parse(args, "(i)", &fd))
-    return NULL;
-  
-  result = fchdir(fd);
-
-  if (result == -1)
-    return posix_error();
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-
 /* List of functions defined in the module */
 
 static PyMethodDef ptrace_methods[] = {
@@ -390,8 +343,6 @@ static PyMethodDef ptrace_methods[] = {
 #ifdef PTRACE_SETOPTIONS
 	method(settracesysgood),
 #endif
-	method(getpgid),
-	method(fchdir),
 	{ NULL }		/* sentinel */
 };
 
@@ -399,7 +350,7 @@ static PyMethodDef ptrace_methods[] = {
 /* Initialization function for the module */
 
 DL_EXPORT(void)
-     initptrace()
+initptrace()
 {
   PyObject *m, *d;
 

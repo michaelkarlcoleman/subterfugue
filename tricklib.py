@@ -11,6 +11,7 @@ import os
 import re
 
 import ptrace
+import svr4
 from subterfugue import allflags
 
 
@@ -65,7 +66,7 @@ def canonical_path(pid, path, followlink=1):
     finally:
         try:
             try:
-                ptrace.fchdir(cwd)
+                svr4.fchdir(cwd)
 	    except OSError, e:
         	# cwd should still be there, but maybe someone did chmod a-rwx?
 	        print 'canonical_path: could not return to old directory!'

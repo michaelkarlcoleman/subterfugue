@@ -1,0 +1,5 @@
+*shared*
+
+ptrace ptracemodule.c
+svr4 svr4module.c
+_subterfugue _subterfuguemodule.c

@@ -3,10 +3,6 @@ SUBTERFUGUE installation
 	$Header$
 
 
-(While SUBTERFUGUE is in this alpha state, it's assumed that it will be run
-directly out of the source directory.)
-
-
 INSTALLATION
 
 1.  Make sure you're running an acceptable kernel.  Vanilla kernels version
@@ -19,12 +15,14 @@ INSTALLATION
 2.  Do a 'make'.  If you have problems building the ptrace module, you may
     have to replace 'Makefile.pre.in' from your Python distribution.
 
-3.  Put 'sf' in your PATH, or just invoke it in place ("./sf").  Try "sf -h";
-    if you get a usage message, you're doing pretty good.
+3.  Put 'dsf' in your PATH, or just invoke it in place ("./dsf").  ('dsf' is a
+    version of 'sf' that lets you run in the development directory, without
+    installing.)  Try "dsf -h"; if you get a usage message, you're doing
+    pretty good.
 
-4.  You can test sf by doing something like
+4.  You can test dsf by doing something like
 
-	sf --trick=Trace date
+	dsf --trick=Trace date
 
     The output should be reminiscent of strace, something like
 
@@ -37,3 +35,4 @@ INSTALLATION
 	[1993] fstat(3, -1073744208) =
 	[1993] 		fstat() = 0
 
+5.  To install, say 'make install' as root, and use 'sf' instead of 'dsf'.

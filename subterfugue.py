@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # command-line handler and architecture-independent part of main loop
 
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
@@ -27,7 +26,8 @@ import sys
 import traceback
 
 import ptrace
-import sfptrace
+import svr4
+import _subterfugue
 
 from debug import *
 from version import VERSION
@@ -360,8 +360,8 @@ def do_main(allflags):
 
         try:
             if fastmainloop:
-                wpid, status, beforecall = sfptrace.mainloop(lastpid,
-                                                             waitchannelhack)
+                wpid, status, beforecall \
+                      = _subterfugue.mainloop(lastpid, waitchannelhack)
             else:
                 wpid, status = os.waitpid(-1, wait_flags)
         except OSError, e:
@@ -414,7 +414,7 @@ def do_main(allflags):
                 del allflags[ppid]['newchildflags'][tag]
                 allflags[ppid]['children'].append(wpid) # copy problem?
 
-                allflags[wpid]['pgid'] = ptrace.getpgid(wpid)
+                allflags[wpid]['pgid'] = svr4.getpgid(wpid)
 
                 # our parent might be waiting for us
                 wake_parent(ppid, allflags[ppid])
@@ -449,7 +449,7 @@ def do_main(allflags):
             stopsig = os.WSTOPSIG(status)
             
             if waitchannelhack:
-                callstop = sfptrace.atcallstop(wpid, stopsig)
+                callstop = _subterfugue.atcallstop(wpid, stopsig)
             else:
                 callstop = stopsig == signal.SIGTRAP | 0x80
 
