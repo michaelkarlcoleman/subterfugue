@@ -45,3 +45,14 @@ process flags -
 - deathnotice : if present, a list of (pid, signal) pairs, where 'pid' is a
 	   child that has just died, and 'signal' is the signal that is to be
 	   delivered to the parent (i.e., SIGCHLD, unless clone is involved).
+
+Linux 2.2 without patches
+=========================
+
+There's no way we could work on vanilla 2.2.X. Once syscall is
+started, we can only change its arguments, but can not change syscall
+number. We also can not kill process fast enough (signals are
+processed at syscall _exit_, not entry). Therefore, if application
+does fork(), it escapes sandbox: fork() takes no arguments, we can not
+abort it, and newly created process is ran untraced.
+
