@@ -50,7 +50,18 @@ _skipcallafter = {}
 def set_skipcallafter(pid):
     global _skipcallafter
     _skipcallafter[pid] = 1
-    
+
+def real_kill(pid):
+    # This is ugly, but required: if someone tries to do an syscall, simple kill -9
+    # will _not_ prevent that syscall from executing
+    poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
+    try:
+        ptrace.pokeuser(pid, ORIG_EAX, _badcall)
+    except:
+	print "Warning, set to badcall failed"
+	pass
+
+    ptrace.kill(pid)
 
 # XXX: this doesn't belong in a platform-specific file
 def set_weedout_masks(tricklist):
@@ -140,7 +151,6 @@ def trace_syscall(pid, flags, tricklist):
         return
     return trace_syscall_after(pid, flags, tricklist, call, eax)
 
-
 def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
     nargs = sysent[syscallmap.NARGS]
     args = peek_args(pid, nargs)
@@ -206,14 +216,10 @@ def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
             callno = syscallmap.lookup_number(call)
         else:
             callno = call
-        try:
-            if debug():
-                print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, callno)
-            ptrace.pokeuser(pid, ORIG_EAX, callno)
-        except OSError, e:
-            print 'error: call alter failed in trick %s (%s) [you are using 2.2.X, are you? Killing %d]' % (trick, e, pid)
-	    poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
-	    ptrace.kill(pid)
+
+	if debug():
+            print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, callno)
+        ptrace.pokeuser(pid, ORIG_EAX, callno)
         flags['call_delta'] = scno
 
     # could continue child hereabouts

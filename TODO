@@ -13,13 +13,12 @@ http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
 - why doesn't emacs' shell-command work? (uses vfork) [works for me --pavel]
 - time tricks to make netscape, staroffice installer work better
 - nicer strace trick
-- man page (or whatever)
 - makefile improvements?
+
 - out of memory trick
 - disk full trick
 - timewarp trick
-- if follower crashes while a process in entering a syscall, that call still
-  gets executed, even though we SIGKILL the process (?)
+
 - not doing the right thing if parent has a SIGCHLD handler and kid exits (no
   signal gets sent???)
 - handle rapid parent or child death at clone

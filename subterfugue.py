@@ -506,7 +506,7 @@ def main():
             for p in kids:
                 print 'killing %s with SIGKILL' % p
                 try:
-                    os.kill(p, signal.SIGKILL)
+                    real_kill(p)
                 except:
 		    print 'aieee: failed to kill process', p
                     pass
