@@ -1,4 +1,11 @@
-# disallow close of fd 123
+#
+#       Disallow manipulations with file handle 123
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
+#	Notice this is required for safe operation of scratch trick
+#
 
 #	$Header$
 

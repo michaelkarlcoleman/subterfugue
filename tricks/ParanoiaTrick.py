@@ -1,16 +1,17 @@
 #
+#       Only enable known-good syscalls (this trick is truly paranoid)
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 #	You have to enable following other modules in order to get safe sandbox:
 #
-#	NoClose123
-#	Arg
-#	NoKill
-#	Umask
-#	NoMunmap
-#	[Simple]PathSandbox
+#	NoClose123, Arg, NoKill, Umask, NoMunmap, [Simple]PathSandbox
 #	restrict networking if you want to
 #	do we need to restrict sysV ipc?
 #	[is that all?]
 #
+
 #	$Header$
 
 from Trick import Trick

@@ -1,6 +1,10 @@
 #
-#	Stdio only
+#	Allow only syscalls program using stdio should do
 #
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
+
 #	$Header$
 
 from Trick import Trick

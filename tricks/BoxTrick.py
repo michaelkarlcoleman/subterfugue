@@ -1,4 +1,12 @@
-# This serves as base object for other sandboxes. [I did not use "SimplePathSandbox" name, because it is *MUCH* too long]
+#
+#       This serves as base object for other sandboxes
+#	[I did not use "SimplePathSandbox" name, because it is *MUCH* too long]
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
+
 
 #	$Header$
 

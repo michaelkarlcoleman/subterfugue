@@ -1,4 +1,9 @@
-# Copy syscall arguments to non-volatile memory; resolve paths
+#
+#       Copy syscall arguments to non-volatile memory; resolve paths
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 
 #	$Header$
 

@@ -1,3 +1,9 @@
+#
+#       Example: put disclaimer after each write
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 # test area writes by adding a disclaimer to each write. Difference
 # from LineDisclaimerTrick is that it actually works.
 

@@ -1,4 +1,9 @@
-# disallow un- or re-mapping of the scratch area
+#
+#       Disallow un/re-mapping of specified memory area
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 
 #	$Header$
 
@@ -13,6 +18,9 @@ class NoMunmap(Trick):
     def usage(self):
         return """
         Does not let traced process play with force-mmaped memory from scratch module.
+
+	Alternatively, pass start and end addresses of memory you
+	don't want processes to play with.  
 """
 
     def __init__(self, options):

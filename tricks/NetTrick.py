@@ -1,4 +1,9 @@
-# restrict network access
+#
+#       Restrict network access, also copy socketcall() arguments to safe area
+#
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 
 #	$Header$
 
