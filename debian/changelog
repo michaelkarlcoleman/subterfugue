@@ -1,3 +1,9 @@
+subterfugue (0.2.1a-1) unstable; urgency=low
+
+  * do the right thing when 'python' != 'python2.1' (closes: #122217)
+
+ -- Mike Coleman <mkc@debian.org>  Mon,  3 Dec 2001 23:30:39 -0600
+
 subterfugue (0.2.1-1) unstable; urgency=high
 
   * upgrade to conform to new Debian Python Policy (closes: #119237)

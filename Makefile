@@ -37,8 +37,8 @@ dsf : sf.in
 	chmod a+rx $@
 
 compilepy ::
-	python    -c 'import compileall; compileall.main()' .
-	python -O -c 'import compileall; compileall.main()' .
+	$(PYTHON_COMMAND)    -c 'import compileall; compileall.main()' .
+	$(PYTHON_COMMAND) -O -c 'import compileall; compileall.main()' .
 
 modules/%.so : modules/%.c
 	cd modules \
