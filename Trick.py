@@ -12,6 +12,7 @@
 
 
 class Trick:
+
     def __init__(self, options):
         """This method is invoked once before any child processes are
         started.  The trick can do any needed initial setup in this method.
@@ -188,8 +189,12 @@ class Trick:
             except KeyError:
                 assert 0, "Attempting to disable enable(0) trick?"
 
-    # pid == 0   ->  enabled for all
+    # pid: "all"|None|<pid>
+    # should be initialized with "all" or None before any use
     def enable(self, pid):
-        if pid <= 0: # initialization
+        if pid == None: # initialization
             self._enabled_for = {}
-        self._enabled_for[pid] = 1
+        elif pid == "all":
+            self._enabled_for = { 0: 1 }
+        else:
+            self._enabled_for[pid] = 1
