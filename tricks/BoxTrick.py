@@ -18,6 +18,38 @@ import tricklib
 
 
 class Box(Trick):
+	"""Semantics of protection:
+
+	Protection is based (unlike unix) on absolute pathnames, and
+	(also unike unix) allow read/write works applies to whole
+	subtree. If process may write to something, right to read from
+	it is granted automagically. [FIXME: either fix code so that
+	we can deny read but allow write, or make reads allowed
+	explicitely]
+
+	allow * applies to whole patch components. That means that
+	allow read /a does not grant rights to /amaya. [Other matching
+	methods could be introduced, like regular expressions, if they
+	seem handy].
+
+	For operations like unlink, write access is needed for object
+	being unlinked (unlike unix, where no access is needed to
+	object and write access is needed to its directory).
+
+	For hardlink operation, write access is required for source
+	(unlike unix, where no access is needed). This is because
+	attacker could link file somewhere it has write access and
+	because permissions apply to subtrees, he could write to it
+	under new name.
+
+	It does not make sense to make rules like allow write /foo,
+	deny write /foo/bar/baz, because attacker could mv bar haha,
+	and write to /foo/haha/baz. (Allow write /foo, deny write
+	/foobar should be safe, through). Generally, once you granted
+	write access to subtree, do not try to use deny (anything
+	inside tree).
+	"""
+
     def usage(self):
         return """
 	Restricts filesystem access to read-only access to publicly-readable files.
@@ -42,7 +74,7 @@ class Box(Trick):
 	    'acct' : ('w',),
 	    'umount' : ('w',),
 	    'chroot' : ('r',),
-	    'symlink' : (None, 'wl'),
+	    'symlink' : ('w', 'wl'),
 	    'oldlstat' : ('rl',),
 	    'readlink' : ('rl',),
 	    'uselib' : ('r',),
