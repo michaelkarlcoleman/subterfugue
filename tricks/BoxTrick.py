@@ -51,7 +51,7 @@ class Box(Trick):
 	    'acct' : ('w',),
 	    'umount' : ('w',),
 	    'chroot' : ('r',),
-	    'symlink' : ('none', 'wl'),
+	    'symlink' : ('n', 'wl'),
 	    'oldlstat' : ('rl',),
 	    'readlink' : ('rl',),
 	    'uselib' : ('r',),
@@ -77,12 +77,16 @@ class Box(Trick):
 	return map(_abspath, path)
 
     def file_is_public(self, path):
-	"""Checks if file exists and is publicly readable"""
+	"""Checks if file is publicly readable
+
+	What to do if file does not exist?
+	safe choice is to return 'it is not public'
+"""
 
 	try:
 	    mode = os.stat(path)[stat.ST_MODE]
 	except OSError, e:
-	    return 0
+	    return 1
 	if not (mode & 0004):
 		return 0
 	return 1
@@ -96,22 +100,16 @@ class Box(Trick):
             return cpath
     
         for d in validlist:
-            result = 0
-            if d[0] == '-':
-                result = -1
-                d = d[1:]
-	    if d[0] == '+':
-		d = d[1:]
-	    if d[0] == '?':
-		result = -1 * (not self.file_is_public(path))
-		d = d[1:]
-
+	    c = d[0]
+	    d = d[1:]
 #            print 'considering %s, %s' % (cpath, d)
             if string.find(cpath, d) == 0:
                 if (len(cpath) == len(d)
                     or cpath[len(d)] == '/'
                     or d[-1] == '/'):
-                    return result
+		    if c == '-': return -1;
+		    if c == '+': return 0;
+		    if c == '?' and self.file_is_public(path): return 0;
         return -1
 
     def __init__(self, options):
@@ -177,6 +175,7 @@ class Box(Trick):
         for i in range(len(sign)):
             if sign[i]:
                 s = sign[i][0]
+		if s == 'n': continue
                 assert s == 'r' or s == 'w'
                 if s == 'r':
                     a = self._read
