@@ -37,14 +37,8 @@ class NoClose123(Trick):
 	assert 0
 
     def callafter(self, pid, call, result, state):
-        # XXX: what does this code do?
 	assert state != None
         a_0, fd = state
-        if fd == 125:
-            force_syscall(pid, lookup_number('dup2'), a_0, 127)	#HACK!
-            force_syscall(pid, lookup_number('dup2'), a_0, 129)	#HACK!
-            # force_syscall(pid, lookup_number('dup2'), a_0, 131) #HACK!
-            # force_syscall(pid, lookup_number('dup2'), a_0, 133) #HACK!
 
     def callmask(self):
         return { 'close' : 1, 'dup2' : 1, 'fcntl' : 1 }
