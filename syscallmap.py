@@ -107,7 +107,7 @@ table = (
     ( 1, TF,	"sys_swapon",		"swapon",	('P')),# 87
     ( 3, 0,	"sys_reboot",		"reboot",	None),# 88
     ( 3, 0,	"sys_readdir",		"readdir",	None),# 89
-    ( 6, 0,	"sys_mmap",		"mmap",	None),	# 90
+    ( 1, 0,	"sys_mmap",		"mmap",	None),	# 90 -- This was wrong! It has just one parameter: pointer to area with more parameters (on i386)
     ( 2, 0,	"sys_munmap",		"munmap",	None),# 91
     ( 2, TF,	"sys_truncate",		"truncate",	('P', None)),# 92
     ( 2, 0,	"sys_ftruncate",	"ftruncate",	None),# 93
@@ -260,6 +260,7 @@ sockettable = (
     ( "recvmsg", ('f', 'msg', 'flags')),
     )
 
+# Move callaccess from BoxTrick here?
 
 
 def _init_call_to_number():
