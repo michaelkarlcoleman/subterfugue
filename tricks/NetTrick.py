@@ -50,7 +50,7 @@ class Net(Trick):
 	to dissallow any connections to 195.113 network. (Notice that passed
 	value is regexp and that it is allow/deny trick. [I know that
 	using regexps for network matching is not ideal, but you'll probably
-	want tolimit to a small set of machines, anyway, so it should not hurt
+	want to limit to a small set of machines, anyway, so it should not hurt
 	much.]
 
 	Notice that connect and bind is not separated. It probably should be.
@@ -102,10 +102,10 @@ class Net(Trick):
 	    addrlen = -1
 
 	    for i in range(len(pattern)):
-		# Note: this is not true for unix domainsockets
 		if pattern[i] == 'l':
 		    if debug: print 'Getint returned ', getint(params, i*4)
 		    addrlen = getint(params, i*4)
+# Note: this is not true for unix domain sockets
 #		    assert getint(params, i*4) == 16, '== %s' % getint(params, i*4)
 
 	    for i in range(len(pattern)):
