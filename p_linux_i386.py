@@ -11,6 +11,7 @@ import types
 
 import ptrace
 import sfptrace
+import subterfugue
 
 from debug import debug
 
@@ -30,6 +31,8 @@ import os
 os.WUNTRACED = 2
 os.WALL   = 0x40000000                  # no __WALL because _ raises python hell
 os.WCLONE = 0x80000000
+
+compat_WALL = os.WALL			# use this, so it can be disabled when needed.
 
 
 # a bogus syscall number, used to annul calls
@@ -304,9 +307,9 @@ def force_syscall(pid, scno, p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0):
     ptrace.pokeuser(pid, EAX, scno)		# Select new scno and point eip to syscall
     poke_args(pid, 6, [p1, p2, p3, p4, p5, p6])
     ptrace.syscall(pid,0)			# We make it return to userland and do syscal
-    wpid, status = os.waitpid(pid, os.WUNTRACED|os.WALL)
+    wpid, status = os.waitpid(pid, os.WUNTRACED|compat_WALL)
     ptrace.syscall(pid, 0)			# Kernel stops us before syscall is done
-    wpid, status = os.waitpid(pid, os.WUNTRACED|os.WALL)
+    wpid, status = os.waitpid(pid, os.WUNTRACED|compat_WALL)
     assert pid == wpid				# Kernel stops us when syscall is done
     res = ptrace.peekuser(pid, EAX)		# We get the syscall result
     ptrace.pokeuser(pid, EAX, eax)		# and then mimic like nothing happened
