@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# cat amusement toy, idea from Dan Egnor
+
+#	$Header$
+
+if ! type -p xclock > /dev/null; then
+   echo 1>&2 xclock not available
+   exit 1
+fi
+if ! type -p xwininfo > /dev/null; then
+   echo 1>&2 xwininfo not available
+   exit 1
+fi
+
+exec sf --tri=TimeWarp:w=50.0 xclock -update 1 \
+	$(xwininfo -root | fgrep -e -geometry)

@@ -6,16 +6,21 @@ many other things.  You could think of it as "strace meets expect."
 
 Here's a short (real) "screenshot" which hints at one of its possible uses:
 
-    # sf --trick=SimplePathSandbox:"read=['/'];write=['/dev/tty'];net=1" bash
+    # sf --trick=SimplePathSandbox:"read=['/'];write=['/dev/tty']" bash
     # id
     uid=0(root) gid=0(root) groups=0(root)
     # rm -f /etc/passwd
     write deny (unlink): '/etc/passwd'
     rm: cannot unlink `/etc/passwd': Permission denied
 
+[Translation: Run 'bash' in a sandbox (restricted environment) so that it and
+all of the processes it creates can read all files (everything under '/') but
+can only write '/dev/tty'.  All system calls that read or write to the
+filesystem are checked, and the attempt to unlink '/etc/passwd' is
+disallowed.]
 
-BEWARE: This is an alpha release.  Don't run this as root, except on a scratch
-system.  Don't use it to run programs where a loss of state might be
-disastrous (e.g., fetchmail).  Consider yourself warned.
+Disclaimer: SUBTERFUGUE is still fairly alpha.  If you run it on a system that
+matters and something breaks, you get to keep both pieces.  Especially avoid
+programs where a loss of state might be disastrous (e.g., fetchmail).
 
 See 'http://subterfugue.org' and the sf(1) man page for more info.

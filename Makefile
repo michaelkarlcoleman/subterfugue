@@ -51,7 +51,7 @@ dist ::
 	$(MAKE) distclean
 	rm -f ../$(distdir)
 	cd .. && ln -s subterfugue $(distdir) \
-		&& tar cfh - --exclude='*/CVS' $(distdir) \
+		&& tar cfh - --exclude=CVS $(distdir) \
 		| gzip --best > $(distfile)
 	rm -f ../$(distdir)
 	@echo 'Did you do a "cvs update/commit" first???'
@@ -74,6 +74,7 @@ install ::
 	install $(PYTHON_MODULES) $(DESTDIR)$(PYTHON_SITE)
 	install $(SUBTERFUGUE_MODULES) $(DESTDIR)$(SUBTERFUGUE_ROOT)
 	install sf $(DESTDIR)/usr/bin
+	install scripts/herekitty $(DESTDIR)/usr/bin
 	install doc/*.1 $(DESTDIR)/usr/share/man/man1
 	install README NEWS CREDITS INSTALL INTERNALS \
 		$(DESTDIR)/usr/share/doc/subterfugue
@@ -85,6 +86,8 @@ install_compiled :: install
 
 dpkg ::
 	dpkg-buildpackage -rfakeroot
+	cd .. && f=`ls -1t subterfugue*.changes | head -1` \
+		&& echo $$f && lintian -i $$f
 	fakeroot debian/rules clean
 
 clean ::
@@ -92,6 +95,7 @@ clean ::
 	-rm -f *.py[co] *~
 	-cd modules && rm -f *~ *.o *.so Makefile{,.pre} sedscript config.c
 	-cd tricks && rm -f *.py[co] *~
+	-cd scripts && rm -f *~
 	-cd test && $(MAKE) clean
 
 distclean :: clean

@@ -9,6 +9,8 @@ Version 0.2 ("tiger")
 * Added 'now' and 'delta' flags to TimeWarp trick.  Experience the future and
   the past!
 
+* New 'herekitty' script to amuse your cat!  (Dan Egnor's cool idea)
+
 * FixFlash trick fixes a problem with the Macromedia Flash plugin that causes
   Netscape to hang when Flash tries to use /dev/dsp and it's in use.
 
