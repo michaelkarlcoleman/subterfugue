@@ -8,6 +8,13 @@
 #include <unistd.h>
 
 
+/* these defines are needed if we're compiling under libc5 (ugh) */
+#include <features.h>
+#ifndef __GLIBC__
+#define pid_t int
+#endif
+
+
 static PyObject *ErrorObject;
 
 /* Set a POSIX-specific error from errno, and return NULL */

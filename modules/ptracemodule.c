@@ -5,6 +5,9 @@
 
 #include <sys/ptrace.h>
 
+#include "Python.h"
+
+
 #ifndef PTRACE_SETOPTIONS
 #define PTRACE_SETOPTIONS 21
 #endif
@@ -12,18 +15,12 @@
 #define PTRACE_O_TRACESYSGOOD 0x00000001
 #endif
 
-#ifdef PAVEL
-/* Pavel, I want to know more about why this is needed.  Is 'pid_t' really not
-   available on some Linux platform? */
-#ifndef pid_t
+/* these defines are needed if we're compiling under libc5 (ugh) */
+#include <features.h>
+#ifndef __GLIBC__
 #define pid_t int
-#endif
-#ifndef PTRACE_PEEKUSER
 #define PTRACE_PEEKUSER PTRACE_PEEKUSR
-#endif
-#ifndef PTRACE_POKEUSER
 #define PTRACE_POKEUSER PTRACE_POKEUSR
-#endif
 #endif
 
 /* GETPPID will go away */
@@ -34,7 +31,6 @@
 #endif
 #endif
 
-#include "Python.h"
 
 static PyObject *ErrorObject;
 

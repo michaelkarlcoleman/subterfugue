@@ -14,23 +14,22 @@
 #define _USE_BSD
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/reg.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 
-#ifdef PAVEL
-/* Pavel, I want to know more about why this is needed.  Are these really not
-   available on some Linux platform? */
-#ifndef PTRACE_PEEKUSER
+/* these defines are needed if we're compiling under libc5 (ugh) */
+#include <features.h>
+#ifndef __GLIBC__
 #define PTRACE_PEEKUSER PTRACE_PEEKUSR
+#define PTRACE_ARGTYPE (int)
+#else
+#define PTRACE_ARGTYPE 
+#include <sys/reg.h>
 #endif
-#ifndef PTRACE_POKEUSER
-#define PTRACE_POKEUSER PTRACE_POKEUSR
-#endif
-#endif
+
 
 //#define DBG(a...) fprintf( stderr, a )
 #define DBG(a...)
@@ -192,7 +191,7 @@ subterfugue_mainloop(PyObject *self, PyObject *args)
     */
     if (beforecall) {
       DBG("getting scno\n");
-      scno = ptrace(PTRACE_PEEKUSER, wpid, 4*ORIG_EAX, &scno);
+      scno = ptrace(PTRACE_PEEKUSER, wpid, 4*ORIG_EAX, PTRACE_ARGTYPE &scno);
       DBG("scno is %d (%m)\n", scno);
       if (scno < 0 || scno >= MAXCALLNUMBER)
 	goto giveup;
