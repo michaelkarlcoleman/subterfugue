@@ -64,6 +64,19 @@ def set_weedout_masks(tricklist):
     _signal_weedout_mask = tuple(_signal_weedout_mask)
 
 
+def peek_args(pid, nargs):
+    args = []
+    assert nargs <= 6, "kernel doesn't support 7+ args?"
+    for i in range(nargs):
+        args.append(ptrace.peekuser(pid, 4 * i))
+    return args    
+
+def poke_args(pid, nargs, args):
+    assert nargs <= 6, "kernel doesn't support 7+ args?"
+    for i in range(nargs):
+        ptrace.pokeuser(pid, 4 * i, args[i])
+
+
 def trace_syscall(pid, flags, tricklist):
     scno = ptrace.peekuser(pid, ORIG_EAX)
 
@@ -112,11 +125,8 @@ def trace_syscall(pid, flags, tricklist):
 
 
 def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
-    args = []
     nargs = sysent[syscallmap.NARGS]
-    assert nargs <= 6, "kernel doesn't support 7+ args?"
-    for i in range(nargs):
-        args.append(ptrace.peekuser(pid, 4 * i))
+    args = peek_args(pid, nargs)
 
     call_save = call
     args_save = args[:]
@@ -150,6 +160,9 @@ def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
     # call_changes, args, args_save, scno, call, call_save, state, ???
 
     flags['call_changes'] = call_changes
+
+    # XXX: maybe faster to just brute force args rather than this careful
+    # delta stuff?
 
     # make any necessary changes to child's args, saving undo info
     # (XXX: hmm, is this actually better than the iterative version?)
@@ -266,6 +279,30 @@ def trace_syscall_after(pid, flags, tricklist, call, eax):
         del flags['args_delta']
     del flags['insyscall']
 
+
+# This code from Pavel M shows how to insert and restart syscalls.  There are
+# issues to be worked out, though:
+# - this hangs everything if the forced call sleeps
+# - this doesn't play well with the trick composition stuff in trace_syscall
+# (imagine what happens when a non-innermost trick does this)
+# - what happens if a signal gets delivered while we're forcing?
+#
+def force_syscall(pid, scno, p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0):
+    registers = peek_args(pid, 6)
+    eip = ptrace.peekuser(pid, EIP)
+    eax = ptrace.peekuser(pid, EAX)
+    ptrace.pokeuser(pid, EIP, eip-2)
+    ptrace.pokeuser(pid, EAX, scno)		# Select new scno and point eip to syscall
+    poke_args(pid, 6, [p1, p2, p3, p4, p5, p6])
+    ptrace.syscall(pid,0)			# We make it return to userland and do syscal
+    wpid, status = os.waitpid(pid, os.WUNTRACED|os.WALL)
+    ptrace.syscall(pid, 0)			# Kernel stops us before syscall is done
+    wpid, status = os.waitpid(pid, os.WUNTRACED|os.WALL)
+    assert pid == wpid				# Kernel stops us when syscall is done
+    res = ptrace.peekuser(pid, EAX)		# We get the syscall result
+    ptrace.pokeuser(pid, EAX, eax)		# and then mimic like nothing happened
+    poke_args(pid, 6, registers)
+    return res
 
 
 # FIX: currently this (maybe?) gets called twice for SIGTSTP, SIGTTOU, SIGTTIN

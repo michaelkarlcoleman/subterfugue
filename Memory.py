@@ -19,6 +19,7 @@ def getMemory(pid):
 class Memory:
     def __init__(self, pid):
         # XXX: maybe the open should be lazy?
+        # FIX: what if /proc missing?
         self.m = os.open("/proc/%s/mem" % pid, os.O_RDWR)
         self.save = []
         self.pid = pid
@@ -48,7 +49,13 @@ class Memory:
 
     def poke(self, address, data, fortrick=None):
         """Poke 'data' into 'address'.  If 'fortrick' is not None, this is a
-        momentary poke to be popped after syscall return."""
+        momentary poke to be popped after syscall return.
+
+        BEWARE: poke and pop are dangerous for child processes which share
+        (writable) memory.  This would include any that use clone (e.g. native
+        thread programs).  See INTERNALS for more details and the scratch
+        module for a better approach.
+        """
         if fortrick:
             self.save.insert(0, (fortrick, address,
                                  self.peek(address, len(data))))

@@ -11,6 +11,8 @@ TI = 8
 TN = 16
 
 
+# The original version of this table was based on info from 'strace'.
+
 table = (
     ( 0, 0,	"sys_setup",		"setup", None),	# 0XX
     ( 1, TP,	"sys_exit",		"_exit",	None),	# 1
@@ -230,6 +232,32 @@ table = (
     ( 1, 0,	"sys_setfsuid",		"setfsuid",	None),# 215
     ( 1, 0,	"sys_setfsgid",		"setfsgid",	None),# 216
     )
+
+
+# socketcall subcommands
+# XXX: clean this up somehow
+sockettable = (
+    ( "invalid_call", ('bogus') ),	# subcommands are numbered from 1
+    ( "socket", ('family', 'type', 'protocol')),
+    ( "bind", ('f', 'A', 'l')),
+    ( "connect", ('f', 'A', 'l')),
+    ( "listen", ('f', 'i')),
+    ( "accept", ('f', 'A', 'lp')), 		# 5
+    ( "getsockname", ('f', 'A', 'lp')),
+    ( "getpeername", ('f', 'A', 'lp')),
+    ( "socketpair", ()),
+    ( "send", ('f', 'buff', 'len', 'flags')),
+    ( "recv", ('f', 'buff', 'Len', 'flags')),   # 10
+    ( "sendto", ('f', 'buff', 'Len', 'flags', 'A', 'l')),
+    ( "recvfrom", ('f', 'buff', 'len', 'flags', 'A', 'lp')),
+    ( "shutdown", ('f', 'how')),
+    ( "setsockopt", ('f', 'level', 'optname', 'optval', 'optlen')),
+    ( "getsockopt", ('f', 'level', 'optname', 'optval', 'optlenp')), #15
+    ( "sendmsg", ('f', 'msg', 'flags')),
+    ( "recvmsg", ('f', 'msg', 'flags')),
+    )
+
+
 
 def _init_call_to_number():
     result = {}

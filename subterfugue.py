@@ -188,6 +188,8 @@ def drop_process(pid, allflags, flags, exitstatus, termsig):
         d.append((pid, flags['exit_signal']))
         pflags['deathnotice'] = d
         wake_parent(ppid, pflags)
+    else:
+        del allflags[pid]
 
 
 def handle_death(pid, allflags, flags, tricklist, exitstatus, termsig):
@@ -202,6 +204,11 @@ def do_main(allflags):
     sys.stdout = sys.stderr             # doesn't affect kids
 
     command, tricklist = process_arguments(sys.argv)
+
+    if not command:
+        print 'error: no COMMAND given\n'
+        usage()
+        sys.exit(1)
 
     pid = os.fork()
     if (pid == 0):
@@ -361,8 +368,10 @@ def do_main(allflags):
 # failnice means we don't SIGKILL all our children if we abort
 failnice = 0
 
+# map of pid -> flags  (see INTERNALS)
+allflags = {}
+
 def main():
-    allflags = {}
     try:
         do_main(allflags)
     except:
@@ -380,6 +389,7 @@ def main():
                 try:
                     os.kill(p, signal.SIGKILL)
                 except:
+		    print 'aieee: failed to kill process', p
                     pass
         if etype == exceptions.SystemExit:
             if evalue.args[0] != 0:

@@ -4,8 +4,10 @@
 
 import errno
 import os
+import re
 
 import ptrace
+from subterfugue import allflags
 
 def getcwd(pid):
     return os.readlink('/proc/%s/cwd' % pid)
@@ -59,3 +61,25 @@ def canonical_path(pid, path, followlink=1):
         except OSError, e:
             # someone may have deleted the saved cwd
             pass
+
+
+def in_valid_list(s, validlist):
+    """Returns true iff s matches a regexp in validlist"""
+
+    decision = -1
+    for d in validlist:
+	if (d[0] == '-'):
+            decision2 = 0
+            d2 = d[1:]
+	else:
+            decision2 = 1
+            d2 = d
+
+        if re.match(d2, s):
+	    decision = decision2
+    return decision
+
+
+def is_followed(pid):
+    """Returns true iff we're following process 'pid'."""
+    return allflags.has_key(pid)

@@ -21,7 +21,20 @@ class SimplePathSandbox(Trick):
         return """
         Restricts filesystem access to specified paths.  The parameters 'read'
         and 'write' each specify a list of paths; for each path, access will
-        be given to the file or directory tree specified.
+        be given to the file or directory tree specified.  
+
+        Example:  --trick=SimplePathSandbox:read=['/'];write=['.']
+
+        (Note that '~' is not interpreted specially.)
+
+	Each path can be prefixed by a '-' to indicated that access to the
+	path should be denied.  This example would allow '/home' to be read,
+	but not anything under '/home/pavel'.
+
+	Example:  --trick=SimplePathSandbox:read=['-/home/pavel','/home']
+
+        The first applicable path determines whether or not access is
+        allowed.  If no path is applicable, access is denied.
 
         A diagnostic will be output each time an action is denied unless the
         'quiet' parameter is set to a true value.
@@ -30,17 +43,14 @@ class SimplePathSandbox(Trick):
         is, access to all Unix domain sockets will be possible, even if not
         allowed by the 'read' or 'write' list (yes, this is a wart).
 
-        (This trick blocks the rarely-used 'quotactl' and 'nfsservctl' calls,
+        (This trick blocks the rarely used 'quotactl' and 'nfsservctl' calls,
         which are tricky to handle correctly.)
-
-        Example:  --trick=SimplePathSandbox:read=['/'];write=['.']
 """
 
     def __init__(self, options):
         self.options = options
-        self._write = map(os.path.abspath, options.get('write', []))
-        self._read = copy.copy(self._write)
-        self._read.extend(map(os.path.abspath, options.get('read', [])))
+        self._write = map(_abspath, options.get('write', []))
+        self._read = map(_abspath, options.get('read', []))
         self._net = options.get('net', 0)
         self._quiet = options.get('quiet', 0)
 
@@ -125,6 +135,13 @@ _callaccess = {
     'chown16' : ('w',)
     }
 
+def _abspath(p):
+    """return the abspath of p, but leave any leading '-' alone"""
+    if p[0] == '-':
+        return '-' + os.path.abspath(p[1:])
+    else:
+        return os.path.abspath(p)
+
 def _access(pid, path, followlink, validlist):
     """check path against the prefixes in validlist, returning 0 if valid, -1
     if invalid, and an appropriate errno if there were problems with the
@@ -134,9 +151,15 @@ def _access(pid, path, followlink, validlist):
         return cpath
     
     for d in validlist:
+        result = 0
+        if d[0] == '-':
+            result = -1
+            d = d[1:]
+
+        print 'considering %s, %s' % (cpath, d)
         if string.find(cpath, d) == 0:
             if (len(cpath) == len(d)
                 or cpath[len(d)] == '/'
                 or d[-1] == '/'):
-                return 0
+                return result
     return -1
