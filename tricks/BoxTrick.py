@@ -147,7 +147,7 @@ class Box(Trick):
 	"""Semantics of protection:
 
 	Protection is based (unlike unix) on absolute pathnames, and
-	(also unike unix) allow read/write works applies to whole
+	(also unlike unix) allow read/write works applies to whole
 	subtree. If process may write to something, right to read from
 	it is granted automagically. [FIXME: either fix code so that
 	we can deny read but allow write, or make reads allowed
@@ -171,7 +171,7 @@ class Box(Trick):
 	It does not make sense to make rules like allow write /foo,
 	deny write /foo/bar/baz, because attacker could mv bar haha,
 	and write to /foo/haha/baz. (Allow write /foo, deny write
-	/foobar should be safe, through). Generally, once you granted
+	/foobar should be safe, though). Generally, once you granted
 	write access to subtree, do not try to use deny (anything
 	inside tree).
 	"""
