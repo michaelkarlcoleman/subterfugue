@@ -205,7 +205,9 @@ def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
                 print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, callno)
             ptrace.pokeuser(pid, ORIG_EAX, callno)
         except OSError, e:
-            sys.exit('panic: call alter failed in trick %s (%s)' % (trick, e))
+            print 'error: call alter failed in trick %s (%s) [you are using 2.2.X, are you? Killing %d]' % (trick, e, pid)
+	    poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
+	    ptrace.kill(pid)
         flags['call_delta'] = scno
 
     # could continue child hereabouts
