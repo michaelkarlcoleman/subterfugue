@@ -54,7 +54,7 @@ class StateMachine:
                     if self.watch_calls != []:
                         sys.exit("Error in %s: both IGNORE and WATCH used" % \
                                  cfg_file)
-                    self.ignore_calls = string.split(line)[1:]
+                    self.ignore_calls += string.split(line)[1:]
                     for x in fork_calls:
                         if x in self.ignore_calls:
                             sys.exit("Can't IGNORE %s calls." % str(fork_calls))
@@ -63,7 +63,7 @@ class StateMachine:
                     if self.ignore_calls != []:
                         sys.exit("Error in %s: both IGNORE and WATCH used" % \
                                  cfg_file)
-                    self.watch_calls = string.split(line)[1:] + fork_calls
+                    self.watch_calls += string.split(line)[1:] + fork_calls
                     continue
                 elif re.match('^DEFINE .*$',line):
                     trickname = string.split(line)[1]
@@ -85,7 +85,7 @@ class StateMachine:
                 elif re.match('^OUT .*', line):
                     self.out = string.split(line)[1]
                     continue
-                elif re.match('^' + anycall + '().*$', line):
+                elif re.match('^' + anycall + '\(\).*$', line):
                     if cur_state == None:
                         sys.exit("Error at line %d (state not defined): %s" % \
                                   (file.lineno(), line))
