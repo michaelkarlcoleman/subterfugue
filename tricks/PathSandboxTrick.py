@@ -84,7 +84,7 @@ class PathSandbox(Box):
 	alllow_if_public read /
 	allow read,write /dev/tty
 
-	On each operation, config is readed from the end to the
+	On each operation, config is scanned from the end to the
 	beggining. If path from config is start of current path, access is allowed
 	or denied, and no further processing is done. Allow_if_public
 	means that sandbox looks at access mode of given object. If object
