@@ -16,12 +16,16 @@
 #define _USE_BSD
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/reg.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
+#ifndef PTRACE_PEEKUSER
+#define PTRACE_PEEKUSER PTRACE_PEEKUSR
+#endif
+#ifndef PTRACE_POKEUSER
+#define PTRACE_POKEUSER PTRACE_POKEUSR
+#endif
 
 //#define DBG(a...) fprintf( stderr, a )
 #define DBG(a...)

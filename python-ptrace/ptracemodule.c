@@ -12,6 +12,15 @@
 #define PTRACE_O_TRACESYSGOOD 0x00000001
 #endif
 
+#ifndef pid_t
+#define pid_t int
+#endif
+#ifndef PTRACE_PEEKUSER
+#define PTRACE_PEEKUSER PTRACE_PEEKUSR
+#endif
+#ifndef PTRACE_POKEUSER
+#define PTRACE_POKEUSER PTRACE_POKEUSR
+#endif
 
 /* GETPPID will go away */
 #undef PTRACE_GETPPID
@@ -52,7 +61,6 @@ ptrace_traceme(PyObject *self, PyObject *args)
   Py_INCREF(Py_None);
   return Py_None;
 }
-
 
 static inline PyObject *
 peek(int request, PyObject *self, PyObject *args)
