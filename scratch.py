@@ -4,11 +4,13 @@
 
 import os
 import sys
+import tempfile
 
 num      = 16
 size	 = 4096
 bitmap   = [1] * num
-filename = "/tmp/mmap-safe"
+tempfile.template = "subterfugue_memory_%d_" % os.getpid()
+filename = tempfile.mktemp()
 
 _initialized = 0
 
@@ -21,8 +23,13 @@ def safe_len():
 def init():
     global _initialized
     try:
-        # FIX: won't we get into trouble mapping everything to the same file?
-	handle = os.open(filename, os.O_RDONLY | os.O_CREAT)
+	# Create file for us. FIXME: how are we going to deallocate this file?
+	handle = os.open(filename, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+	os.write(handle, '*'*size*num)
+	os.close(handle)
+#	print 'Using temporary file ', filename
+
+	handle = os.open(filename, os.O_RDONLY)
 	os.dup2(handle, 123)
 	os.close(handle) # Don't want to leave it...
         _initialized = 1
@@ -39,7 +46,6 @@ def alloc_str(s):
 	    os.lseek(fc, i * size, 0)
 	    os.write(fc, s)
 	    os.write(fc, '\0')
-	    os.write(fc, 'This is past end of string')
 	    os.close(fc)
 	    # Need to check
 	    return i, base() + size * i
@@ -55,7 +61,6 @@ def alloc_bytes(s, l):
 	    os.lseek(fc, i * size, 0)
 	    for j in range(l):
 		os.write(fc, s[j])
-	    os.write(fc, 'This is past end of raw data')
 	    os.close(fc)
 	    return i, base() + size * i
     assert not 'ran out of scratch space'
