@@ -3,6 +3,12 @@
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.
 
+# This is slightly racey. When user does gettimeofday, right time appears
+# in his address space for a short while. He could have read it from another
+# thread, and find that you are playing tricks with him.
+# 
+# Nice feature would be to allow shift in time (in order to beat expiration
+# dates on software).
 
 #	$Header$
 
@@ -143,6 +149,8 @@ class TimeWarp(Trick):
                  # getrlimit, setrlimit, getrusage, wait4
                  # times, ulimit, profil
                  # sysctl?
+
+		 # read /proc/uptime
                  }
 
 
