@@ -43,7 +43,10 @@ class Net(Trick):
 	Anyway, you can now filter network access in term of what
 	addresses are passed and where. You can pass filter=['-TCP 195\.113.*']
 	to dissallow any connections to 195.113 network. (Notice that passed
-	value is regexp and that it is allow/deny trick. [I know its ugly.]
+	value is regexp and that it is allow/deny trick. [I know that
+	using regexps for network matching is not ideal, but you'll probably
+	want tolimit to a small set of machines, anyway, soitshould not hurt
+	much.]
 
 	Notice that connect and bind is not separated. It probably should be.
 """
@@ -56,19 +59,28 @@ class Net(Trick):
 
 # Sockaddr_in looks like this: 2 bytes family, 2 bytes port, 4 bytes IPA
 
-    def checkaddress(self, state, addr):
+    def checkaddress(self, state, addr, addrlen):
 	family, type, protocol = state
 
 	atype = 'Unknown'
 	if family == 2 and type == 1 and protocol == 0:		atype = 'TCP'
 	if family == 2 and type == 2 and protocol == 0:		atype = 'UDP'
+	if family == 1:						atype = 'Unix'
 
-        port = ord(addr[2])<<8 | ord(addr[3])
-	asciiaddress = "%s %d.%d.%d.%d/%d" % (atype, ord(addr[4]), ord(addr[5]), ord(addr[6]), ord(addr[7]), port)
-	if debug: print asciiaddress,
+	if atype == 'TCP' or atype == 'UDP':
+	    assert addrlen == 16
+	    port = ord(addr[2])<<8 | ord(addr[3])
+	    asciiaddress = "%s %d.%d.%d.%d/%d" % (atype, ord(addr[4]), ord(addr[5]), ord(addr[6]), ord(addr[7]), port)
+	    if debug: print asciiaddress,
+
+	if atype == 'Unix':
+	    assert addrlen > 4
+	    asciiaddress = "%s %s" % (atype, addr[2:])
+        print 'Assciiaddress is ', asciiaddress
 
 	if tricklib.in_valid_list(asciiaddress, self._filter):
 	    return 1
+	print 'Denying access to ', asciiaddress
 	return 0
 
     def callbefore(self, pid, call, args):
@@ -82,23 +94,28 @@ class Net(Trick):
 	    params = list(params)
 
 	    curfd = -1
+	    addrlen = -1
+
+	    for i in range(len(pattern)):
+		# Note: this is not true for unix domainsockets
+		if pattern[i] == 'l':
+		    if debug: print 'Getint returned ', getint(params, i*4)
+		    addrlen = getint(params, i*4)
+#		    assert getint(params, i*4) == 16, '== %s' % getint(params, i*4)
+
 	    for i in range(len(pattern)):
 		if pattern[i] == 'f':
 		    curfd = getint(params, i*4)
 		    if debug: print '(fd = ', curfd, ')',
 
-		if pattern[i] == 'l':
-		    if debug: print 'Getint returned ', getint(params, i*4)
-		    assert getint(params, i*4) == 16, '== %s' % getint(params, i*4)
-
 		if pattern[i] == 'A':
 		    paddr = getint(params, i*4)
-		    address = Memory.getMemory(pid).peek(paddr, 16) # FIXME: 16 is length of internet address, it is not right to hardcode it
+		    address = Memory.getMemory(pid).peek(paddr, addrlen)
 		    address = list(address)
 		    if not self.checkaddress(self.fdmap[pid][curfd], address):
 			return (None, -errno.EPERM, None, None)
 		    if debug: print 'Address is ', address
-		    handle2, addr2 = scratch.alloc_bytes(address, 16)
+		    handle2, addr2 = scratch.alloc_bytes(address, addrlen)
 		    if debug: print 'Addr = %x' % addr2
 		    setint(params, i*4, addr2)
 		    assert addr2 == getint(params, i*4)
