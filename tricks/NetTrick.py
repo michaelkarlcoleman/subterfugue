@@ -99,12 +99,13 @@ class Net(Trick):
 	if atype == 'Unix':
 	    if addrlen < 3:
 		raise 'Strange size in nettrick/2'
+            addr = addr[:addr[2:].index('\x00')+2] # hack? addrlen not helpful
 	    asciiaddress = "%s %s" % (atype, addr[2:])
 #        print 'Asciiaddress is ', asciiaddress
 
 	if self.in_valid_list(asciiaddress, self._filter, call):
 	    return 1
-	print 'Denying access to ', asciiaddress
+	print 'Denying access to %s' % asciiaddress
 	return 0
 
     def callbefore(self, pid, call, args):

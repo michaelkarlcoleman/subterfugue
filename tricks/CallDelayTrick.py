@@ -34,7 +34,7 @@ class CallDelay(Trick):
         if delay > 0:
             print "Delaying %s() for %d seconds ..." % (call, delay)
             time.sleep(delay)
-        self.last_time = now
+        self.last_time = int(time.time())
 
     def callmask(self):
         if self.options.has_key('call'):
