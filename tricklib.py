@@ -90,4 +90,4 @@ def in_valid_list(s, validlist):
 
 def is_followed(pid):
     """Returns true iff we're following process 'pid'."""
-    return allflags.has_key(pid)
+    return allflags.has_key(pid) and os.getpid() != pid
