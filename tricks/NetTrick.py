@@ -31,26 +31,26 @@ def setint(params, i, val):
     params[i+3] = chr((val & 0xff000000) >> 24)
 
 class Net(Trick):
+    """
+	This is can of worms. socketcall() passes pointer to
+	structure, which contains pointer to address. It is ugly.
+    """
+
     def usage(self):
         return """
         Restricts network access.
 
-	This is can of worms. socketcall() passes pointer to
-	structure, which contains pointer to address. It is ugly.
-
 	Anyway, you can now filter network access in term of what
 	addresses are passed and where. You can pass filter=['-TCP 195\.113.*']
 	to dissallow any connections to 195.113 network. (Notice that passed
-	value is regexp and that it is allow/deny trick.
+	value is regexp and that it is allow/deny trick. [I know its ugly.]
 
 	Notice that connect and bind is not separated. It probably should be.
 """
 
     def __init__(self, options):
         self.options = options
-# Why do we want to map that? User should know what [s]he is doing. If he gives us relative path, he deserves breakage
         self._filter = options.get('filter', [])
-# We might want to make some parts write only -- therefore we will not do append
         self._net = options.get('net', 0)
 	self.fdmap = {} # Fixme: make it local
 
