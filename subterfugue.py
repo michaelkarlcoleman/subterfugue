@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2000  Mike Coleman
+#
+#       Command-line handler and architecture-independend part of main loop
+#
+#       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#
 # This is free software; see COPYING for copying conditions.  There is NO
 # warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# subterfugue runs (or, eventually, attaches to) programs, playing various
-# tricks on them.  Tricks generally distort the program's reality, though some
-# tricks may merely observe (a la strace).
+#	Subterfugue runs (or, eventually, attaches to) programs, playing various
+#	tricks on them.  Tricks generally distort the program's reality, though some
+#	tricks may merely observe (a la strace).
 
 #	$Header$
 

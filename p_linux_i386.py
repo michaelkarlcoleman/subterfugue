@@ -1,4 +1,10 @@
-# platform-specific trace routines (linux-i386)
+#
+#	Platform-specific trace routines
+#
+#       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
+#	Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#	Can be freely distributed and used under the terms of the GNU GPL.
+#
 
 #	$Header$
 

@@ -1,4 +1,10 @@
-# utility functions useful for trickery
+#
+#       Utility functions usefull for trickery
+#
+#       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+#
 
 #	$Header$
 
