@@ -7,13 +7,11 @@ order.
 - fix zombie accumulation problem
 - fix /proc/self bug in canonical_path
 
-- profile/optimize python (try to continue processes ASAP)
-- interactive sandbox trick (Gtk+ interface)
+- interactive sandbox trick (Gtk+ interface) [partly done: see
+http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
 
-- why doesn't emacs' shell-command work? (uses vfork)
+- why doesn't emacs' shell-command work? (uses vfork) [works for me --pavel]
 - time tricks to make netscape, staroffice installer work better
-- handle volatile memory problem (which allows evasion)
-- finish project web page docs (motivation)
 - nicer strace trick
 - man page (or whatever)
 - makefile improvements?
@@ -40,16 +38,13 @@ order.
 - nice general mapping classes (which map strings to values)
 - option for tricks to ignore some children??
 - do early detach of a process we know will die? (like strace)
-- paranoia trick (block anything that could steal control)
 - implement process attach
 - implement ptrace in kids (incl CLONE_PTRACE)
-- gdb trick
+- gdb trick [what schould gdb trick do?]
 - any use for separate callbefore and callafter masks?
 - callmask kernel patch
 - get wait working best effort, for the non-traced-parent case
 - trace/replay (a la MEC's qtrace) trick?
-- support replacement of a call with multiple calls (rather than just 0 or 1),
-  probably using RESTARTNOINTR
 - do something smarter about the exec SIGTRAP
 - handle SIGCONT or others sent to suspended kid (or prevent)
  (this is a race--we don't want other processes CONTinuing traced kids that
