@@ -25,5 +25,7 @@ D: path canonicalization suggestion
 S: Czech Republic
 
 N: Pavel Machek
-D: several tricks, patches, and loads of useful bug reports and comments
+E: pavel@ucw.cz
+W: http://atrey.karlin.mff.cuni.cz/~pavel
+D: ScratchTrick to avoid volatile memory problem, PathSandbox, and more
 S: Czech Republic
