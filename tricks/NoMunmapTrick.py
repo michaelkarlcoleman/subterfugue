@@ -15,8 +15,12 @@ class NoMunmap(Trick):
         Does not let traced process play with force-mmaped memory from scratch module.
 """
 
+    def __init__(self, options):
+	self.start = options.get('start', scratch.base())
+	self.end   = options.get('end',   scratch.base() + scratch.safe_len())
+
     def check(self, address, size):
-	if address <= scratch.base()+scratch.safe_len() and address+size >= scratch.base():
+	if address <= self.start and address+size >= self.end:
 	    return (None, -errno.EPERM, None, None)
 	else:
             return (1, None, None, None)
