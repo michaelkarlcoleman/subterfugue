@@ -133,10 +133,11 @@ def trace_syscall(pid, flags, tricklist):
 	else:
 	    eaxcall = ""
 	# FIX: this probably fires for SIG_DFL stop calls (except SIGSTOP)
-	#print 'warning: received SIGTRAP or stray syscall exit: eax = %d (%s)' % (eax, eaxcall)
+	print 'warning: received SIGTRAP or stray syscall exit: eax = %d (%s)' % (eax, eaxcall)
         # FIX: is this right?  what's really going on here?
-	raise 'warning: received SIGTRAP or stray syscall exit:' \
-              'pid = %d, eax = %d (%s)' % (pid, eax, eaxcall)
+        # no, don't do this, because of the SIG_DFL issue above!!!!!  --mkc
+	#raise 'warning: received SIGTRAP or stray syscall exit:' \
+        #      'pid = %d, eax = %d (%s)' % (pid, eax, eaxcall)
 	#return
 	# FIX: is this the right thing to do?
 	flags['insyscall'] = 1
