@@ -4,6 +4,9 @@ NARGS = 0
 CALL = 3
 SIGNATURE = 4
 
+# These constants are from 'strace'.  All the "process" syscalls are tagged
+# with TP, all the "file" syscalls are tagged with TF, etc.  SF doesn't
+# currently use it, but it's here for now in case it might be useful.
 TP = 1
 TF = 2
 TS = 4

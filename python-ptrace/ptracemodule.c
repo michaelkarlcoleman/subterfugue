@@ -5,8 +5,20 @@
 
 #include <sys/ptrace.h>
 
+#ifndef PTRACE_SETOPTIONS
+#define PTRACE_SETOPTIONS 21
+#endif
+#ifndef PTRACE_O_TRACESYSGOOD
+#define PTRACE_O_TRACESYSGOOD 0x00000001
+#endif
+
+
+/* GETPPID will go away */
+#undef PTRACE_GETPPID
+#if 0
 #ifndef PTRACE_GETPPID
 #define PTRACE_GETPPID 20
+#endif
 #endif
 
 #include "Python.h"
@@ -269,6 +281,33 @@ ptrace_getppid(PyObject *self, PyObject *args)
 #endif
 
 
+#ifdef PTRACE_SETOPTIONS
+
+static char ptrace_settracesysgood__doc__[] =
+"settracesysgood(pid) -> None\n\
+Set the TRACESYSGOOD flag for this child.  This causes the high (0x80) bit to
+ be set on system call stops.";
+
+static PyObject *
+ptrace_settracesysgood(PyObject *self, PyObject *args)
+{
+  pid_t pid;
+  long int result, data;
+  
+  if (!PyArg_Parse(args, "(i)", &pid))
+    return NULL;
+  
+  result = ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_TRACESYSGOOD);
+
+  if (result == -1)
+    return posix_error();
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+#endif
+
+
 /* These really belong in the base Python libraries, but for now, it's getting
  * stuffed here.  (FIX)
  */
@@ -335,6 +374,9 @@ static PyMethodDef ptrace_methods[] = {
 	method(attach),
 #ifdef PTRACE_GETPPID
 	method(getppid),
+#endif
+#ifdef PTRACE_SETOPTIONS
+	method(settracesysgood),
 #endif
 	method(getpgid),
 	method(fchdir),

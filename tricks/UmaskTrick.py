@@ -1,4 +1,4 @@
-# throttle average i/o rate
+# disallows use of certain permissions bits (e.g. setuid/setgid/sticky)
 
 #	$Header$
 
@@ -13,7 +13,7 @@ class Umask(Trick):
     def usage(self):
         return """
 	Forces sandboxed application not to use certain file
-	permissions. For example do not allow apps to use setuid bit.
+	permissions.  For example does not allow apps to use setuid bit.
 """
     
     def __init__(self, options):

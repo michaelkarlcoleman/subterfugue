@@ -31,7 +31,7 @@ def init():
 
 def alloc_str(s):
     assert _initialized, "this function requires the use of ScratchTrick!"
-#    assert len(s) < size-5 FIXME: we *must* guarantee that, but I do not know how to say this
+    assert len(s) < size-5 # FIXME: we *must* guarantee that, but I do not know how to say this
     for i in range(num):
 	if bitmap[i]:
 	    bitmap[i] = 0

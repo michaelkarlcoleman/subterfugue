@@ -1,6 +1,16 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
+Version 0.1.2 ("georgia")
+
+* Several improvements and new tricks (PathSandbox, NoMunmap, Paranoia, Umask)
+  from Pavel Machek.
+
+* Removed dependency on PTRACE_GETPPID.  Added use of PTRACE_O_TRACESYSGOOD;
+  the corresponding kernel patch allows backward compatibility with existing
+  versions of 'strace'.
+
+
 Version 0.1.1 ("sanchez")
 
 * First cut at integration of Pavel Machek's patch.  It includes his safe

@@ -7,10 +7,9 @@
 
 CFLAGS = -g
 
-PROGRAMS = badexec clone clone-signal fork fork-parent-dies fork-rapid getenv \
-	getpidloop loop openread pauseloop pclone sigcont sigreturn sleep60 \
-	sleeploop trap trapkid vfork wait-1 wait-2 wait-3 wait-4 wait-5 wait-6 \
-	escape
+PROGRAMS = badexec clone clone-signal escape fork fork-parent-dies fork-rapid	\
+  getenv getpidloop loop openread pauseloop pclone sigcont sigreturn sleep60	\
+  sleeploop trap trapkid vfork wait-1 wait-2 wait-3 wait-4 wait-5 wait-6
 
 all :: $(PROGRAMS)
 

@@ -1,3 +1,7 @@
+# disallow un- or re-mapping of the scratch area
+
+#	$Header$
+
 from Trick import Trick
 from p_linux_i386 import *
 from syscallmap import *
@@ -8,7 +12,7 @@ import errno
 class NoMunmap(Trick):
     def usage(self):
         return """
-        Does not let traced process to play with force-mmaped memory from scratch module.
+        Does not let traced process play with force-mmaped memory from scratch module.
 """
 
     def check(self, address, size):

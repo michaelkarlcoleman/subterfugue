@@ -53,13 +53,14 @@ class p_linux_i386_trick(Trick):
 
             # If a process does several forks before any of the new children
             # report, it has to be able to tell the children apart when they
-            # start reporting.  This kludge pokes a unique tag in the EBP
-            # register, which seems to survive across the clone call.  (Note
-            # that we can't poke it into memory, because memory might be
-            # shared with the parent.)
+            # start reporting.  This kludge saves a unique tag in the regs for
+            # the 6th arg, which seems to survive across the clone call.
+            # (Note that we can't poke this info into memory, because memory
+            # might be shared with the parent.)
+            #
+            # The original parent pid is also saved in the 5th arg, as this
+            # info is hard to get at elsewhere.
             tag = serial()
-            tagsave = ptrace.peekuser(pid, EBP)
-            ptrace.pokeuser(pid, EBP, tag)
 
             ppid = pid
             if call == 'clone':
@@ -67,16 +68,18 @@ class p_linux_i386_trick(Trick):
                 assert not args[0] & clone.CLONE_PTRACE, "oops: CLONE_PTRACE not yet implemented"
                 if args[0] & clone.CLONE_PARENT:
                     ppid = flags['parent']
-                flags['newchild'] = (ppid, tag)
-                return ((ppid, tag, tagsave), None, None, (args[0] | clone.CLONE_PTRACE, args[1]))
+                newcall = None
+                newargs = (args[0] | clone.CLONE_PTRACE, args[1], 0, 0, ppid, tag)
             else:
                 # rewrite to an equivalent clone, but with PTRACE
                 # (2nd arg = 0 means use same stack pointer)
                 f = signal.SIGCHLD | clone.CLONE_PTRACE
                 if call == 'vfork':
                     f = f | clone.CLONE_VFORK | clone.CLONE_VM
-                flags['newchild'] = (ppid, tag)
-                return ((ppid, tag, tagsave), None, 'clone', [f, 0])
+                newcall = 'clone'
+                newargs = (f, 0, 0, 0, ppid, tag)
+            flags['newchild'] = (ppid, tag)
+            return ((ppid, tag), None, newcall, newargs)
 
         elif call == 'execve':
             flags['exectrappending'] = 1
@@ -122,8 +125,7 @@ class p_linux_i386_trick(Trick):
             if result == -errno_internal.ERESTARTNOHAND: # like pause
                 return -errno_internal.ERESTARTSYS # like wait
         elif call == 'fork' or call == 'clone' or call == 'vfork':
-            ppid, tag, tagsave = state
-            ptrace.pokeuser(pid, EBP, tagsave) # undo tagging
+            ppid, tag = state
             if result < 0:
                 # no new child was created, so don't expect it
                 del self.allflags[ppid]['newchildflags'][tag]

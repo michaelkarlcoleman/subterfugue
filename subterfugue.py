@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (C) 2000  Mike Coleman
-# This is free software; see COPYING for  copying conditions.  There is NO
+# This is free software; see COPYING for copying conditions.  There is NO
 # warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 # subterfugue runs (or, eventually, attaches to) programs, playing various
@@ -221,6 +221,7 @@ def do_main(allflags):
         except OSError, e:
             sys.exit('error: could not trace child, maybe already traced?'
                      ' (%s)' % e)
+
         try:
             os.execvp(command[0], command)
         except OSError, e:
@@ -280,7 +281,7 @@ def do_main(allflags):
             # new child
             # FIX: what happens if parent or child already dead?
             # FIX: what happens if parent waits before child reports?
-            ppid = ptrace.getppid(wpid)
+            ppid = ptrace.peekuser(wpid, EDI)
             if debug():
                 print "[%s] new child, parent is %s" % (wpid, ppid)
             if ppid > 1:
@@ -300,7 +301,20 @@ def do_main(allflags):
                 print "pid %d stopped, signal = %d" % (wpid, os.WSTOPSIG(status))
 
             if flags.has_key('startup'):
+                # XXX: This is a slight race, as we're assuming this is the
+                # SIGTRAP after first exec.
                 # Hmm: is this an early chance to do something interesting?
+                try:
+                    ptrace.settracesysgood(wpid)
+                except OSError, e:
+                    if e.errno == errno.EIO:
+                        # kernel doesn't have this patch (which means it'd
+                        # better have the old one)
+                        print "warning: using tracesysgood backward compatibility mode"
+                        pass
+                    else:
+                        sys.exit("%s settracesysgood error [%s]" % (sys.argv[0], e))
+
                 ptrace.syscall(wpid, 0)
                 del flags['startup']
                 continue
