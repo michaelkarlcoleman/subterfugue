@@ -39,6 +39,7 @@ class Trace(Trick):
     def callafter(self, pid, call, result, state):
         print '[%s] 		%s() = %s' % (pid, call, result),
         if result < 0:
+            # FIX: -result can cause an overflow
             print '%s (%s)' % (errno.errorcode.get(-result, 'unknown error'),
                                os.strerror(-result)),
         elif call == 'read':

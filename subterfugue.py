@@ -285,6 +285,7 @@ def do_main(allflags):
         try:
             if fastmainloop:
                 wpid, status, beforecall = sfptrace.mainloop(lastpid)
+                #print 'sfptrace.mainloop(%s) -> (%s, %s, %s)' % (lastpid, wpid, status, beforecall)
             else:
                 wpid, status = os.waitpid(-1, os.WUNTRACED|os.WALL)
         except OSError, e:
@@ -297,10 +298,9 @@ def do_main(allflags):
             # this can't happen (?) because we're ignoring SIGINT
             sys.exit("interrupted")
                 
-        # print 'Got ', wpid, status, beforecall
-
         if fastmainloop and not beforecall:
             allflags[lastpid]['insyscall'] = 1
+            set_skipcallafter(lastpid)
         lastpid = wpid
 
         if not allflags.has_key(wpid):

@@ -38,6 +38,12 @@ _badcall = 0xbadca11
 # pids to skip next callafter for
 _skipcallafter = {}
 
+
+def set_skipcallafter(pid):
+    global _skipcallafter
+    _skipcallafter[pid] = 1
+    
+
 # XXX: does this weedout mask optimization actually speed things up enough to
 # be worth the complexity?
 # XXX: this doesn't belong in a platform-specific file
@@ -187,7 +193,7 @@ def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
     if args_delta:
         flags['args_delta'] = args_delta
 
-    if call == 'sigreturn' or call == 'sig_rt_return':
+    if call == 'sigreturn' or call == 'rt_sigreturn':
         flags['sigreturn'] = call
 
     if call != call_save:
@@ -227,6 +233,7 @@ def trace_syscall_after(pid, flags, tricklist, call, eax):
     result = eax
     state = flags['state']
     call_changes = flags['call_changes']
+    #del flags['call_changes']           # ?
 
     # FIX: copy/reverse slow?
     tricklist = tricklist[:]

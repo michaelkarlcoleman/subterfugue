@@ -11,6 +11,8 @@ process flags -
 - children : list of pids of process' "original" children (i.e., the processes
 	     that would be its children if PTRACE weren't being used
 - pgid : process group id of this process
+- insyscall : if present, indicates that this child has stopped for entry to a
+	      syscall, but has not yet stopped for exit to the call
 - status : ('exited', exitstatus) if the process exited normally
 	   ('signaled', term-signal) if the process exited on a signal
 	   ('stopped', stop-signal) if the process has stopped on a signal
