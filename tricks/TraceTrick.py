@@ -65,6 +65,8 @@ class Trace(Trick):
         else:
             print '[%s] exited (status = %s)' % (pid, exitstatus)
             
+    def cleanup(self):
+        print '# all child processes have exited'
 
     def _printargs(self, call, args, mem):
         sys.stdout.write('(')

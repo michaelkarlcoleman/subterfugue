@@ -1,6 +1,12 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
+Version 0.1.99a ("superstar")
+
+* Fix bug that causes sf to exit prematurely if only kids with parent init
+  remain.
+
+
 Version 0.1.99 ("superstar")
 
 * Added a fix to make SUBTERFUGUE work again with the latest 2.4 kernels.
@@ -19,9 +25,9 @@ Version 0.1.99 ("superstar")
 
 * Added a man page for sf(1), based on Pavel Machek's original draft.
 
-* Added an 'install' target and Debianization.  Debian and RedHat (via alien)
-  packages will be available with this release.  They haven't been tested much
-  yet, but they're probably pretty safe.
+* Added an 'install' target and Debianization.  A Debian package will be
+  available with this release.  It hasn't been tested much yet, but it's
+  probably pretty safe.
 
 * Reorganized the C extension modules.
 

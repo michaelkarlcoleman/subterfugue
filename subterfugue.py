@@ -238,8 +238,11 @@ def drop_process(pid, allflags, flags, exitstatus, termsig):
 def handle_death(pid, allflags, flags, tricklist, exitstatus, termsig):
     trace_exit(pid, flags, tricklist, exitstatus, termsig)
     drop_process(pid, allflags, flags, exitstatus, termsig)
+    # determine whether any traced kids are still alive, but ignore processes
+    # started by tricks
     for k in allflags.keys():
-        if allflags[k].has_key('parent') and not allflags[k].has_key('status'):
+        #print 'death: %s %s' % (k, allflags[k])
+        if allflags[k].has_key('exit_signal') and not allflags[k].has_key('status'):
             break
     else:
         all_kids_dead(tricklist)
@@ -368,6 +371,7 @@ def do_main(allflags):
                 wpid, status = os.waitpid(-1, wait_flags)
         except OSError, e:
             if e.errno == errno.ECHILD:
+                # we probably don't get anymore because of handle_death check
                 cleanup(tricklist)
                 sys.exit(0)
             elif e.errno == errno.EINVAL:

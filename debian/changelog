@@ -1,3 +1,9 @@
+subterfugue (0.1.99a-1) unstable; urgency=low
+
+  * fix bug that could allow process escape
+
+ -- Mike Coleman <mkc@users.sourceforge.net>  Tue, 31 Oct 2000 00:24:14 -0600
+
 subterfugue (0.1.99-1) unstable; urgency=low
 
   * initial Debian package release.
