@@ -1,9 +1,7 @@
-#
-#       Make client net connections fail
-#
+# make client net connections fail
+
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.
-#
 
 
 #	$Header$

@@ -1,0 +1,75 @@
+%%name: SUBTERFUGUE
+
+%%short-description: system call tracing and rewriting utility
+
+%%full-description: A framework for observing and playing with the reality of
+software via system call tracing and rewriting.  It's a foundation for
+building tools to do tracing, sandboxing, and many other things.  You could
+think of it as "strace meets expect."
+
+%%category: ptrace, system call rewriting, strace
+
+%%license: GPL
+
+%%maintainer: Mike Coleman <mkc@users.sourceforge.net>
+
+%%updated: 16 May 2000
+
+%%keywords: medusa, ufo, conf, janus
+
+%%interface: command-line
+
+%%programs: sf
+
+%%GNU: 
+
+%%web-page: http://subterfugue.org
+
+%%support: free answers from maintainer
+	   paid extension/consulting from maintainer
+
+%%doc: user introduction in HTML at http://subterfugue.org
+
+%%developers: Mike Coleman <mkc@users.sourceforge.net>
+
+%%contributors: Pavel Machek <pavel@ucw.cz>
+
+%%sponsors: 
+
+%%source: http://sourceforge.net/project/?group_id=1951
+
+%%debian: 
+
+%%redhat: 
+
+%%repository: anonymous@cvs.subterfugue.sourceforge.net:/cvsroot/subterfugue
+
+%%related: strace
+
+%%source-language: Python, C
+
+%%supported-languages:
+
+%%use-requirements: Linux 2.3.39+ with patch or Linux 2.3.99-pre1+ without, Python 1.5.2+
+
+%%build-prerequisites: Python (with files for module development), gcc
+
+%%weak-prerequisites: 
+
+%%source-prerequisites:
+
+%%version: 0.1.9 alpha on 19 Mar 2000 for Linux
+
+%%announce-list: subterfugue-announce@lists.sourceforge.net
+
+%%announce-news:
+
+%%help-list: subterfugue-dev@lists.sourceforge.net
+
+%%help-news:
+
+%%dev-list: subterfugue-dev@lists.sourceforge.net
+
+%%dev-news:
+
+%%bug-list: subterfugue-dev@lists.sourceforge.net

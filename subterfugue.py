@@ -1,19 +1,19 @@
 #!/usr/bin/env python
+# command-line handler and architecture-independent part of main loop
 
-#
-#       Command-line handler and architecture-independend part of main loop
-#
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Copyright 2000 Pavel Machek <pavel@ucw.cz>
 #
 # This is free software; see COPYING for copying conditions.  There is NO
 # warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-#	Subterfugue runs (or, eventually, attaches to) programs, playing various
-#	tricks on them.  Tricks generally distort the program's reality, though some
-#	tricks may merely observe (a la strace).
-
 #	$Header$
+
+
+# Subterfugue runs (or, perhaps eventually, attaches to) programs, playing
+# various tricks on them.  Tricks generally distort the program's reality,
+# though some tricks may merely observe (a la strace).
+
 
 import copy
 import exceptions
@@ -35,7 +35,7 @@ from version import VERSION
 import Trick
 
 from p_linux_i386 import *
-import p_linux_i386
+
 
 def usage():
     print """This is subterfugue.  It is used to play various specified tricks on a command.
@@ -43,19 +43,15 @@ def usage():
 usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 
 -t, --trick=TRICK[:OPTIONS]	use TRICK with OPTIONS
--o, --output=FILE		direct sf output to FILE or file descriptor
+-o, --output=FILE		direct sf output to FILE
+-o, --output=N			direct sf output to file descriptor N
 -d, --debug			show debugging output
 -n, --failnice			allow kids to live on if sf aborts
 -h, --help			output help, including for TRICKs, and exit
 -V, --version			output version information and exit
--c FILE				use given config file
 
---waitchannelhack		kludge needed if running on unpatched linux 2.4
+--nowaitchannelhack		disable kludge if kernel appropriately patched
 --slowmainloop			disable fast C loop (for debugging)
-
-You can send several signals to running subterfugue:
-SIGTERM		kill all children and exit
-SIGHUP		reread config
 """,
 # -p, --attach=PID		attach to and trick process PID
 
@@ -63,10 +59,10 @@ SIGHUP		reread config
 
 def version():
     print """subterfugue %s
-
 Copyright (C) 2000  Mike Coleman, Pavel Machek
-This is free software (GNU GPL, see the source for details).  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+SUBTERFUGUE comes with ABSOLUTELY NO WARRANTY.  You may redistribute copies of
+SUBTERFUGUE under the terms of the GNU General Public License.  For more
+information about these matters, see the file named COPYING. 
 """ % VERSION,
 
 
@@ -75,17 +71,6 @@ outputfileno = -1
 
 # this is where we stow a dup for stderr, if needed
 childerrfileno = -1
-
-# this is centralized file with configuration of subterfugue
-configfile = 'default'
-
-def user_signal(signo, b, tricklist):
-    global configfile
-    print 'Rereading config from ', configfile
-    if signo == signal.SIGTERM:
-        raise 'I was asked to kill my children'
-    for trick, callmask, signalmask in tricklist:
-	trick.reconfig(configfile, signo)
 
 def process_arguments(args):
     tricklist = []
@@ -99,10 +84,10 @@ def process_arguments(args):
     sys.path = filter(os.path.isdir, trickpath) + sys.path
 
     try:
-        options, command = getopt.getopt(args[1:], 'dht:p:Vo:nc:',
+        options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
                                          ['debug', 'help', 'trick=', 'attach=',
                                           'version', 'output=', 'failnice',
-                                          'slowmainloop', 'waitchannelhack' ])
+                                          'slowmainloop', 'nowaitchannelhack' ])
     except getopt.error, e:
         usage()
         sys.exit(1)
@@ -186,11 +171,8 @@ def process_arguments(args):
             failnice = 1
         elif opt == '--slowmainloop':
             fastmainloop = 0
-        elif opt == '--waitchannelhack':
-            waitchannelhack = 1
-	elif opt == '-c':
-	    global configfile
-	    configfile = arg
+        elif opt == '--nowaitchannelhack':
+            waitchannelhack = 0
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -259,7 +241,7 @@ def cleanup(tricklist):
 
 
 # enable ugly hack for those running unpatched 2.4
-waitchannelhack = 0
+waitchannelhack = 1
 # address of waitchannel for syscall stops (only used for waitchannelhack)
 waitchannelstop = -1
 
@@ -308,6 +290,9 @@ def do_main(allflags):
             os.dup2(childerrfileno, 2)
             os.close(childerrfileno)
 
+        # don't leak this variable to the kids
+        del os.environ['SUBTERFUGUE_ROOT']
+
         try:
             os.execvp(command[0], command)
         except OSError, e:
@@ -325,14 +310,10 @@ def do_main(allflags):
 
     # ignore these so we can continue to trace the child process(es) as they
     # react to these signals (is this bad?)
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGQUIT, signal.SIG_IGN)
-    signal.signal(signal.SIGHUP,  lambda a, b, t = tricklist: user_signal(a,b,t))
-    signal.signal(signal.SIGTERM, lambda a, b, t = tricklist: user_signal(a,b,t))
-    signal.signal(signal.SIGUSR1, lambda a, b, t = tricklist: user_signal(a,b,t))
-    signal.signal(signal.SIGUSR2, lambda a, b, t = tricklist: user_signal(a,b,t))
-
-    user_signal(signal.SIGHUP, 0, tricklist)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
 
     #signal.signal(signal.SIGTSTP, signal.SIG_IGN)  ???
 
@@ -366,25 +347,25 @@ def do_main(allflags):
 
         try:
             if fastmainloop:
-                wpid, status, beforecall = sfptrace.mainloop(lastpid, waitchannelhack)
+                wpid, status, beforecall = sfptrace.mainloop(lastpid,
+                                                             waitchannelhack)
             else:
-                wpid, status = os.waitpid(-1, os.WUNTRACED|p_linux_i386.compat_WALL)
+                wpid, status = os.waitpid(-1, wait_flags)
         except OSError, e:
             if e.errno == errno.ECHILD:
                 cleanup(tricklist)
                 sys.exit(0)
+            elif e.errno == errno.EINVAL:
+                sys.exit("%s wait error: kernel 2.3.50+ or kernel patch for"
+                         " __WALL required" % sys.argv[0])
+            elif e.errno == errno.EINTR:
+                print "%s wait error: received signal" % sys.argv[0]
+                # FIX: what should we really do here??
+                continue
             else:
-		if e.errno == errno.EINVAL:
-		    print "%s wait error: kernel 2.3.50+ or kernel patch for __WALL required for correct operation" % sys.argv[0]
-		    p_linux_i386.compat_WALL = 0
-		    fastmainloop = 0
-		    continue
-		if e.errno == errno.EINTR:
-		    print "Signal came"
-		    continue
-		else: sys.exit("%s wait error [%s]" % (sys.argv[0], e))
+                sys.exit("%s wait error [%s]" % (sys.argv[0], e))
         except KeyboardInterrupt:
-	    assert 0, 'cant happen, were ignoring SIGINT'
+	    assert 0, "this can't happen--we're ignoring SIGINT"
 
         if fastmainloop and not beforecall:
             allflags[lastpid]['insyscall'] = 1
@@ -528,7 +509,7 @@ def main():
             for p in kids:
                 print 'killing %s with SIGKILL' % p
                 try:
-                    real_kill(p)
+                    hard_kill(p)
                 except:
 		    print 'aieee: failed to kill process', p
                     pass

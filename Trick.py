@@ -108,8 +108,8 @@ class Trick:
     def signalmask(self):
         """This method is typically invoked once when the trick is created.
         It must return None or a dictionary whose keys are the symbolic names
-        of signals.  In the latter case, signals not present in the dictionary
-        will not be followed with 'signal' invocations.
+        of signals (e.g., 'SIGHUP').  In the latter case, signals not present
+        in the dictionary will not be followed with 'signal' invocations.
 
         This method should return the same value every time it is invoked on a
         particular Trick instance.
@@ -144,10 +144,3 @@ class Trick:
         return """
         <no help available for this trick>
 """
-
-    def reconfig(self, filename, signal):
-	"""This method is called whenever python receives SIGUSR1 or
-	SIGUSR2. Tricks that read their config from config file should
-	reread config. Number of signal is passed down.
-	""" 
-	pass

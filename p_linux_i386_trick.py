@@ -1,5 +1,4 @@
-#
-#       Internal platform-specific trick *required* for correct tracing (linux-i386)
+# internal platform-specific trick *required* for correct tracing (linux-i386)
 #
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.

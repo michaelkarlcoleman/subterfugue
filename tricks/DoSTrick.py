@@ -1,5 +1,4 @@
-#
-#       Try to compute resource usage by given process
+# try to limit resource usage by given process
 #
 #       Copyright 2000 Pavel Machek <pavel@ucw.cz>
 #       Can be freely distributed and used under the terms of the GNU GPL.

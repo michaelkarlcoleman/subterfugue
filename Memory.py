@@ -8,12 +8,14 @@ import errno
 import os
 import ptrace
 
+
 _allmemory = {}
 
 def getMemory(pid):
     if not _allmemory.has_key(pid):
-        _allmemory[pid] = Memory23(pid)
+        _allmemory[pid] = Memory24(pid)
     return _allmemory[pid]
+
 
 class Memory:
     def __init__(self, pid):
@@ -23,7 +25,7 @@ class Memory:
         
     def peek(self, address, size):
         """read 'size' bytes of data from memory starting at 'address'"""
-	pass
+        assert 0, 'abstract'
 
     def get_string(self, address):
         """read a null-terminated string starting at 'address'.
@@ -47,6 +49,7 @@ class Memory:
         thread programs).  See INTERNALS for more details and the scratch
         module for a better approach.
         """
+        assert 0, 'abstract'
 
     def pop(self, fortrick):
         """Pop any momentary pokes that were done for this trick."""
@@ -66,15 +69,20 @@ class Memory:
             ms = f.readlines()
             # 08134000-0830f000 rw-p 000eb000 16:01 230682     /usr/bin/emacs-20.5            
             # 0         0         0         0         0         0         0
+            # FIX: better to read these lines using re's
             ms = filter(lambda s: s[19] == 'w' and s[21] == 'p', ms)
-            self._areas = map(convert_area, ms)
+            self._areas = map(_convert_area, ms)
         return self._areas
 
-class Memory23(Memory):
+
+class Memory24(Memory):
+    """
+    This is a faster version of the memory object for 2.3.X kernels and later.
+    It uses /proc/<pid>/mem to access the tracee's memory.
+    """
+    # XXX: This could be made faster by mmap'ing /proc/<pid>/mem?
+
     def __init__(self, pid):
-	"""This uses /proc/PID/mem to access tracee's memory. That is
-	fast, but only works on 2.3.X kernels. It could be even faster if we
-	mmap'd /proc/PID/mem"""
 	Memory.__init__(self, pid)
         # XXX: maybe the open should be lazy?
         # FIX: what if /proc missing?
@@ -109,21 +117,20 @@ class Memory23(Memory):
         r = os.write(self.m, data)
         assert r == len(data)           # FIX
 
+
 class Memory22(Memory):
+    """
+    This is a slower version of the memory object for 2.2.X kernels and later.
+    """
+
     def __init__(self, pid):
-	"""This is slow version of memory object, which works on 2.2.X kernels."""
 	Memory.__init__(self, pid)
 
-    def readbyte(self, address):
-	"""Read one byte (ptrace allows us to read word, only). This needs to be
-	changed for non-i386."""
+    def _readbyte(self, address):
+	"""Read one byte (ptrace allows us to read words, only).  This needs
+	to be changed for non-i386."""
 	word = ptrace.peekdata(self.pid, address & ~3)
-	i = address & 3
-	if i == 0: return word          & 0xff
-	if i == 1: return (word >> 8)   & 0xff
-	if i == 2: return (word >> 16)  & 0xff
-	if i == 3: return (word >> 24)  & 0xff
-	assert 0, "This can not happen"
+        return (word >> ((address & 3)*8)) & 0xff
         
     def peek(self, address, size):
         "read 'size' bytes of data from memory starting at 'address'"
@@ -131,7 +138,7 @@ class Memory22(Memory):
 	print "Peeking %d bytes of data at %d" % (size, address)
         s = StringIO()
 	for i in range(size):
-	    c = self.readbyte(address+i)
+	    c = self._readbyte(address+i)
 	    print "Got char %c" % c
 	    s.write(chr(c))
         return s.getvalue()
@@ -139,10 +146,12 @@ class Memory22(Memory):
     def poke(self, address, data, fortrick=None):
 	assert 0, "Not yet implemented"
 
-def convert_area(s):
+
+def _convert_area(s):
     start = _xtoi(s, 0)
     end = _xtoi(s, 9)
     return (start, end - start)
+
 
 def _xtoi(s, offset):
     return eval('0x' + s[offset:offset+8])
@@ -155,7 +164,7 @@ def _memseek(f, address):
         assert r == address
     else:
         # XXX: ugh--expose llseek to python and/or fix mem's size so it can
-        # seek backward from EOF
+        # seek backward from EOF instead
         r = os.lseek(f, 0x7fffffff, 0)
         assert r == 0x7fffffff
         try:

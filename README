@@ -2,7 +2,7 @@ This is SUBTERFUGUE.  See 'NEWS' for info on the latest release.
 
 SUBTERFUGUE is a framework for observing and playing with the reality of
 software; it's a foundation for building tools to do tracing, sandboxing, and
-many other things. You could think of it as "strace meets expect."
+many other things.  You could think of it as "strace meets expect."
 
 Here's a short (real) "screenshot" which hints at one of its possible uses:
 
@@ -14,11 +14,8 @@ Here's a short (real) "screenshot" which hints at one of its possible uses:
     rm: cannot unlink `/etc/passwd': Permission denied
 
 
-BEWARE: This is a beta release.  It might not hose your system, but who can
-say?  You probably shouldn't even be reading this.  Don't run this as root,
-except on a scratch system.  Don't use it to run programs where a loss of
-state might be disastrous (e.g., fetchmail).  Consider yourself warned.
+BEWARE: This is an alpha release.  Don't run this as root, except on a scratch
+system.  Don't use it to run programs where a loss of state might be
+disastrous (e.g., fetchmail).  Consider yourself warned.
 
-See 'http://subterfugue.org' and manpage in doc/sf.1 for more
-info. There's similar system (limited to security issues and requires
-kernel patch) called janus available at http://www.cs.berkeley.edu/~daw/janus/.
+See 'http://subterfugue.org' and the sf(1) man page for more info.

@@ -3,16 +3,18 @@ SUBTERFUGUE installation
 	$Header$
 
 
-(While SUBTERFUGUE is in this beta state, it's assumed that it will be
-run directly out of the source directory.)
+(While SUBTERFUGUE is in this alpha state, it's assumed that it will be run
+directly out of the source directory.)
 
 
 INSTALLATION
 
-1.  Make sure you're running an acceptable kernel: 2.4.0 with
-    --waitchannelhack is okay; if you have anything older or want to get
-    rid of --waitchannelhack, download patch fromhttp://subterfugue.org/. 
-    You also need python 1.5.2 or newer.
+1.  Make sure you're running an acceptable kernel.  Vanilla kernels version
+    2.3.99-pre1 and later will work, albeit a bit slowly (because they use the
+    wait channel hack).  Patches to avoid the wait channel hack or to run on
+    earlier 2.3 kernels are available from the SUBTERFUGUE web site.  You also
+    need python 1.5.2; newer versions probably also work but haven't yet been
+    tested.
 
 2.  Do a 'make'.  If you have problems building the ptrace module, you may
     have to replace 'Makefile.pre.in' from your Python distribution.
@@ -24,5 +26,14 @@ INSTALLATION
 
 	sf --trick=Trace date
 
-    The output should be somewhat reminiscent of strace.
+    The output should be reminiscent of strace, something like
+
+	[1993] brk(0) =
+	[1993] 		brk() = 134541676
+	[1993] open('/etc/ld.so.preload', 0, 1073815588) =
+	[1993] 		open() = -2 ENOENT (No such file or directory)
+	[1993] open('/etc/ld.so.cache', 0, 1073815588) =
+	[1993] 		open() = 3
+	[1993] fstat(3, -1073744208) =
+	[1993] 		fstat() = 0
 

@@ -4,20 +4,28 @@ Here's a list of things to improve or fix, not really in much of a particular
 order.
 
 
+- add distutils packaging
+- need some kind of regression testing
+
 - fix zombie accumulation problem
 - fix /proc/self bug in canonical_path
 
-- interactive sandbox trick (Gtk+ interface) [partly done: see
-http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
+- interactive sandbox trick (Gtk+ interface)
+  [Pavel is working on one: http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
 
 - why doesn't emacs' shell-command work? (uses vfork) [works for me --pavel]
 - time tricks to make netscape, staroffice installer work better
+- handle volatile memory problem (which allows evasion)
+- finish project web page docs (motivation)
 - nicer strace trick
+- add more detail to man page
 - makefile improvements?
 
 - out of memory trick
 - disk full trick
 - timewarp trick
+- if follower crashes while a process in entering a syscall, that call still
+  gets executed, even though we SIGKILL the process (?)
 
 - not doing the right thing if parent has a SIGCHLD handler and kid exits (no
   signal gets sent???)
@@ -37,14 +45,19 @@ http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
 - nice general mapping classes (which map strings to values)
 - option for tricks to ignore some children??
 - do early detach of a process we know will die? (like strace)
+- paranoia trick (block anything that could steal control)
 - implement process attach
 - implement ptrace in kids (incl CLONE_PTRACE)
-- gdb trick [what schould gdb trick do?]
+- gdb trick (e.g., allow gdb to be run under sf)
 - any use for separate callbefore and callafter masks?
 - callmask kernel patch
 - get wait working best effort, for the non-traced-parent case
 - trace/replay (a la MEC's qtrace) trick?
+- support replacement of a call with multiple calls (rather than just 0 or 1),
+  probably using RESTARTNOINTR
 - do something smarter about the exec SIGTRAP
 - handle SIGCONT or others sent to suspended kid (or prevent)
- (this is a race--we don't want other processes CONTinuing traced kids that
+  (this is a race--we don't want other processes CONTinuing traced kids that
   are currently stopped in a PTRACE report
+
+- profile/optimize python

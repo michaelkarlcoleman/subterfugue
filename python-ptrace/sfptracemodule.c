@@ -16,15 +16,22 @@
 #define _USE_BSD
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/reg.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+
+#ifdef PAVEL
+/* Pavel, I want to know more about why this is needed.  Are these really not
+   available on some Linux platform? */
 #ifndef PTRACE_PEEKUSER
 #define PTRACE_PEEKUSER PTRACE_PEEKUSR
 #endif
 #ifndef PTRACE_POKEUSER
 #define PTRACE_POKEUSER PTRACE_POKEUSR
+#endif
 #endif
 
 //#define DBG(a...) fprintf( stderr, a )

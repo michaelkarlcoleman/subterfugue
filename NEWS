@@ -6,7 +6,7 @@ Version 0.1.9 ("pagliacci")
 * Added fast (in C) ignored-call loop from Pavel Machek.
 
 * Added '--waitchannelhack', which will allow SUBTERFUGUE to run (albeit
-  slowly) without no kernel patch on linux 2.3.99 or later.
+  slowly) with no kernel patch on linux 2.3.99 or later.
 
 * The '--output' flag now accepts a file descriptor number as an argument,
   making it easier to separate SUBTERFUGUE output from that of the traced

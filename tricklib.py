@@ -1,10 +1,8 @@
-#
-#       Utility functions usefull for trickery
-#
+# utility functions useful for trickery
+
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Copyright 2000 Pavel Machek <pavel@ucw.cz>
 #       Can be freely distributed and used under the terms of the GNU GPL.
-#
 
 #	$Header$
 
@@ -14,6 +12,7 @@ import re
 
 import ptrace
 from subterfugue import allflags
+
 
 def getcwd(pid):
     return os.readlink('/proc/%s/cwd' % pid)
@@ -25,10 +24,12 @@ def canonical_path(pid, path, followlink=1):
     Will return an appropriate errno if something goes wrong."""
 
     # XXX: reorder to cut down on calls when followlink == 0?
+    # XXX: maybe this could be a little safer but using a subprocess?
 
     # FIX: currently this won't work right if process pid has a CLONE_FS
     # sibling
-
+    # FIX: does this work right after a child chroot??
+    
     cwd = os.open(".", os.O_RDONLY)
     d = ''
     count = 32                          # linux kernel will follow at most
@@ -66,9 +67,8 @@ def canonical_path(pid, path, followlink=1):
             try:
                 ptrace.fchdir(cwd)
 	    except OSError, e:
-        	# someone may have deleted the saved cwd
-	    	# NO! we have got directory open, so it could not have been deleted!
-	        print 'Could not return back to old directory!'
+        	# cwd should still be there, but maybe someone did chmod a-rwx?
+	        print 'canonical_path: could not return to old directory!'
 
         finally:
             try:

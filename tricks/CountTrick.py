@@ -1,9 +1,7 @@
-#
-#       Count system calls and signals
-#
+# count system calls and signals
+
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.
-#
 
 #	$Header$
 

@@ -12,6 +12,9 @@
 #define PTRACE_O_TRACESYSGOOD 0x00000001
 #endif
 
+#ifdef PAVEL
+/* Pavel, I want to know more about why this is needed.  Is 'pid_t' really not
+   available on some Linux platform? */
 #ifndef pid_t
 #define pid_t int
 #endif
@@ -20,6 +23,7 @@
 #endif
 #ifndef PTRACE_POKEUSER
 #define PTRACE_POKEUSER PTRACE_POKEUSR
+#endif
 #endif
 
 /* GETPPID will go away */

@@ -1,9 +1,7 @@
-#
-#       Rot13 all writes, just for fun (apply twice for even more fun! :-)
-#
+# rot13 all writes, just for fun (apply twice for even more fun! :-)
+
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.
-#
 
 #	$Header$
 

@@ -1,11 +1,9 @@
 #
 #       This serves as base object for other sandboxes
-#	[I did not use "SimplePathSandbox" name, because it is *MUCH* too long]
 #
 #       Copyright 2000 Pavel Machek <pavel@ucw.cz>
 #       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
 #       Can be freely distributed and used under the terms of the GNU GPL.
-#
 
 
 #	$Header$
@@ -77,7 +75,7 @@ class Box(Trick):
 	return map(_abspath, path)
 
     def file_is_public(self, path):
-	"""Checks if file is publicly readable
+	"""Checks if file is publicly readable (returns 0 if true)
 
 	What to do if file does not exist?
 	safe choice is to return 'it is not public'

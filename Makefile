@@ -11,7 +11,8 @@ MODULES = python-ptrace/ptracemodule.so python-ptrace/sfptracemodule.so
 all : $(MODULES) sf compilepy
 
 sf : sf.in
-	sed -e 's|^\(SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' $< > $@ || rm $@
+	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' $< > $@ \
+		|| rm $@
 	chmod a+rx $@
 
 compilepy ::
@@ -40,11 +41,11 @@ pushdist ::
 	cd .. && ncftpput -V download.sourceforge.net /incoming $(distfile)
 
 clean ::
+	-rm -f sf
 	-rm -f *.py[co] *~
 	-cd python-ptrace && rm -f *~ *.o *.so Makefile{,.pre} sedscript config.c
 	-cd tricks && rm -f *.py[co] *~
 	-cd test && $(MAKE) clean
 
 distclean :: clean
-	-rm -f sf
 	-cd python-ptrace && rm -f Setup
