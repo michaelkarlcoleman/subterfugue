@@ -59,9 +59,11 @@ def canonical_path(pid, path, followlink=1):
         try:
             try:
                 ptrace.fchdir(cwd)
-            except OSError, e:
-                # someone may have deleted the saved cwd
-                pass
+	    except OSError, e:
+        	# someone may have deleted the saved cwd
+	    	# NO! we have got directory open, so it could not have been deleted!
+	        print 'Could not return back to old directory!'
+
         finally:
             try:
                 os.close(cwd)

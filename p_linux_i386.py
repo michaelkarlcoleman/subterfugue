@@ -38,14 +38,11 @@ _badcall = 0xbadca11
 # pids to skip next callafter for
 _skipcallafter = {}
 
-
 def set_skipcallafter(pid):
     global _skipcallafter
     _skipcallafter[pid] = 1
     
 
-# XXX: does this weedout mask optimization actually speed things up enough to
-# be worth the complexity?
 # XXX: this doesn't belong in a platform-specific file
 def set_weedout_masks(tricklist):
     global _call_weedout_mask, _signal_weedout_mask
@@ -67,7 +64,6 @@ def set_weedout_masks(tricklist):
         else:
             _signal_weedout_mask = [1] * nsig
 
-    # XXX: does this speed up lookups?
     _call_weedout_mask = tuple(_call_weedout_mask)
     _signal_weedout_mask = tuple(_signal_weedout_mask)
 

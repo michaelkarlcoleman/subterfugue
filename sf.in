@@ -3,7 +3,7 @@
 
 #	$Header$
 
-SUBTERFUGUE_ROOT=/path-where-subterfugue-lives
+export SUBTERFUGUE_ROOT=/path-where-subterfugue-lives
 
 PYFLAGS=
 

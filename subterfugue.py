@@ -37,7 +37,7 @@ def usage():
 usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 
 -t, --trick=TRICK[:OPTIONS]	use TRICK with OPTIONS
--o, --output=FILE		direct sf output to FILE
+-o, --output=FILE		direct sf output to FILE or file descriptor
 -d, --debug			show debugging output
 -n, --failnice			allow kids to live on if sf aborts
 -h, --help			output help, including for TRICKs, and exit
