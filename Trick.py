@@ -173,3 +173,23 @@ class Trick:
         return """
         <no help available for this trick>
 """
+
+    def is_enabled(self, pid):
+        keys = self._enabled_for.keys()
+        return 0 in keys or pid in keys
+
+    def is_disabled(self, pid):
+        return not self.is_enabled(pid)
+
+    def disable(self, pid):
+        if self.is_enabled(pid):
+            try: 
+                del self._enabled_for[pid]
+            except KeyError:
+                assert 0, "Attempting to disable enable(0) trick?"
+
+    # pid == 0   ->  enabled for all
+    def enable(self, pid):
+        if pid <= 0: # initialization
+            self._enabled_for = {}
+        self._enabled_for[pid] = 1

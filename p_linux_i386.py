@@ -104,7 +104,6 @@ def hard_kill(pid):
  
     print "process %s is dead (we hope)" % pid
 
-
 # XXX: this doesn't belong in a platform-specific file
 def set_weedout_masks(tricklist):
     global _call_weedout_mask, _signal_weedout_mask
@@ -214,7 +213,8 @@ def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
 
     state = {}
     for trick, callmask, signalmask in tricklist:
-	if not callmask or callmask.has_key(call):
+        if (not callmask or callmask.has_key(call)) \
+                                         and trick.is_enabled(pid):
 	    r = trick.callbefore(pid, call, args)
 	    # r is None or (state, result, call, args)
 	    if r:
@@ -328,7 +328,8 @@ def trace_syscall_after(pid, flags, tricklist, call, eax):
 
     for trick, callmask, signalmask in tricklist:
 	call = call_changes.get(trick, call)
-	if not callmask or callmask.has_key(call):
+        if (not callmask or callmask.has_key(call)) \
+                                         and trick.is_enabled(pid):
 	    r = trick.callafter(pid, call, result, state.get(trick))
 	    if r != None:
 		result = r
@@ -405,7 +406,8 @@ def trace_signal(pid, flags, tricklist, sig):
     tricklist.reverse()
 
     for trick, callmask, signalmask in tricklist:
-	if not signalmask or signalmask.has_key(signalname):
+        if (not signalmask or signalmask.has_key(signalname))\
+                                         and trick.is_enabled(pid):
 	    r = trick.signal(pid, signalname)
 	    # r is None or (signal, )
 	    if r != None:
@@ -429,4 +431,4 @@ def trace_exit(pid, flags, tricklist, exitstatus, termsig):
 	signalname = signalmap.lookup_name(termsig)
 
     for trick, callmask, signalmask in tricklist:
-	trick.exit(pid, exitstatus, signalname)
+        if trick.is_enabled(pid): trick.exit(pid, exitstatus, signalname)

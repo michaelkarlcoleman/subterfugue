@@ -19,7 +19,6 @@ import exceptions
 import getopt
 import os
 import re
-import rexec
 import signal
 import string
 import sys
@@ -33,13 +32,13 @@ from debug import *
 from version import VERSION
 
 import Trick
+import TrickList
 
 import signalmap
 from p_linux_i386 import *
 
 # FIX: for jdike test
 from regs_linux_i386 import *
-
 
 def usage():
     print """This is subterfugue.  It is used to play various specified tricks on a command.
@@ -79,12 +78,13 @@ outputfileno = -1
 childerrfileno = -1
 
 def process_arguments(args):
-    tricklist = []
     help = 0
     global flush_at_call
     flush_at_call = 1
     global fastmainloop, waitchannelhack
     fastmainloop = 1
+    
+    tricklist_obj = TrickList.tricklist
 
     trickpath = string.split(os.environ.get("TRICKPATH", ""), ':')
     sys.path = filter(os.path.isdir, trickpath) + sys.path
@@ -102,48 +102,7 @@ def process_arguments(args):
     _output = 0
     for opt, arg in options:
         if opt == '-t' or opt == '--trick':
-            s = string.split(arg, ':', 1)
-            trick = s[0]
-            if len(s) > 1 and s[1] != "":
-                trickarg = s[1]
-            else:
-                trickarg = None
-
-            if not re.match(r'^\w+$', trick):
-                sys.exit("bad trick name '%s'" % trick)
-            trickmodule = trick + "Trick"
-            try:
-                exec 'import ' + trickmodule
-            except ImportError, e:
-                sys.exit("error while importing %s [%s]"
-                         % (trickmodule, e.args))
-
-            if trickarg:
-                r = rexec.RExec()
-                try:
-                    r.r_exec(trickarg)
-                except SyntaxError, e:
-                    sys.exit("syntax error in '%s' args [%s]"
-                         % (trick, e.args))
-
-                r.r_exec('args = locals().copy()\n'
-                         'for k in args.keys():\n'
-                         '  if k[0] == "_":\n'
-                         '    del args[k]\n')
-                trickarg = r.r_eval('args')
-            else:
-                trickarg = {}
-            trickarg['_command'] = command
-
-            maketrick = "%s.%s(%s)" % (trickmodule, trick, trickarg)
-            try:
-                atrick = eval(maketrick)
-            except AttributeError, e:
-                sys.exit("while creating trick, problem invoking %s (%s)"
-                         % (maketrick, e))
-            assert isinstance(atrick, Trick.Trick), \
-                   "oops: trick not an instance of Trick"
-            tricklist.append((atrick, atrick.callmask(), atrick.signalmask()))
+            tricklist_obj.load_trick(None, arg, command)
         elif opt == '-d' or opt == '--debug':
             setdebug(1)
         elif opt == '-h' or opt == '--help':
@@ -190,7 +149,7 @@ def process_arguments(args):
 
     if help:
         print ''
-        for trick, _1, _2 in tricklist:
+        for trick, _1, _2 in tricklist_obj.get_tricklist():
             print 'Trick: %s' % trick.__class__.__name__
             print trick.usage()
         print 'Report bugs to <subterfugue-dev@lists.sourceforge.net>.'
@@ -199,7 +158,7 @@ def process_arguments(args):
     if debug():
         flush_at_call = 1
 
-    return (command, tricklist)
+    return (command, tricklist_obj)
 
 
 def wake_parent(pid, flags):
@@ -306,7 +265,7 @@ def do_main(allflags):
 
     sys.stdout = sys.stderr             # doesn't affect kids
 
-    command, tricklist = process_arguments(sys.argv)
+    command, tricklist_obj = process_arguments(sys.argv)
 
     if not command:
         print 'error: no COMMAND given\n'
@@ -384,9 +343,9 @@ def do_main(allflags):
                       'children' : [], 'newchildflags' : {} }
 
     it = internal_trick(allflags)
-    assert isinstance(it, Trick.Trick), \
-           "panic: internal_trick not an instance of Trick"
-    tricklist.append((it, it.callmask(), it.signalmask()))
+    tricklist_obj.append_trick((it, it.callmask(), it.signalmask()))
+
+    tricklist = tricklist_obj.get_tricklist()
 
     set_weedout_masks(tricklist)
 

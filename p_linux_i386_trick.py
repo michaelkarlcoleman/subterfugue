@@ -34,6 +34,12 @@ class p_linux_i386_trick(Trick):
         "argument should be allflags; internal tricks get to play with flags"
         self.allflags = options
 
+    def is_enabled(self, pid):  # to make sure noone disables it
+        return 1
+
+    def disable(self, pid):
+        assert 0, "You can't disable internal trick."
+
     def callbefore(self, pid, call, args):
         flags = self.allflags[pid]
 
