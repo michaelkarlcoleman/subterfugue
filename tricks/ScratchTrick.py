@@ -71,7 +71,10 @@ class Scratch(Trick):
 
 	if call == 'execve':
 #	    print 'Scratch: execve -- forgetting on pid', pid
-	    del _mapped[pid]
+	    try:
+	        del _mapped[pid]
+	    except:
+	        print '%d did execve but I had not him mapped?' % pid
 
     def callmask(self):
         return {

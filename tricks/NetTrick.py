@@ -50,7 +50,7 @@ class Net(Trick):
 	to dissallow any connections to 195.113 network. (Notice that passed
 	value is regexp and that it is allow/deny trick. [I know that
 	using regexps for network matching is not ideal, but you'll probably
-	want tolimit to a small set of machines, anyway, soitshould not hurt
+	want tolimit to a small set of machines, anyway, so it should not hurt
 	much.]
 
 	Notice that connect and bind is not separated. It probably should be.
