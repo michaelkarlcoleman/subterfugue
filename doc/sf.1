@@ -1,0 +1,85 @@
+.TH sf 1 "2 April 2000"
+.\"SKIP_SECTION"
+.SH NAME
+sf \- utility to modify environment of other programs
+.\"SKIP_SECTION"
+.SH USAGE
+.B sf
+[-todnhV] [--waitchannelhack] [--slowmainloop] command [options for command]
+.SH DESCRIPTION
+.LP
+Subterfugue (aka sf) is utility which allows modifying execution
+environment of other programs. How to modify environment is described
+in so called tricks.  For example NetFailTricks makes any network
+operation automatically fail for given command.
+.\".\"DONT_SPLIT"
+.SH OPTIONS
+.TP
+.I "\-t, \-\-trick=TRICK[:OPTIONS]"
+Use trick with given options. Use sf -t(NameOfTrick) -h to get
+description of given trick along with syntax of any options.
+.TP
+.I "\-o, \-\-output=FILE"
+Direct sf output to FILE or, if FILE is number, to a file descriptor.
+.TP
+.I "\-d, \-\-debug"
+Show debugging output
+.TP
+.I "\-n, \-\-failnice"
+Allow kids to live on even if sf aborts.
+.TP
+.I "\-h, \-\-help"
+Output help, including help for tricks, and exit.
+.TP
+.I "\-V, \-\-version"
+Output version information, copyright and exit
+.TP
+.I "\-\-waitchannelhack"
+Kludge needed if running unpatched linux 2.4.
+.TP
+.I "\-\-slowmainloop" 
+Run mainloop in python, even through faster C code could be used. Good
+for debugging, only.
+
+.SH "NetFailTrick"
+Causes calls to connect to fail with error EHOSTUNREACH.
+
+.SH "TraceTrick"
+Traces system calls, signals, and process exit (similar to strace(1)).
+The 'call' parameter may specify a list of system call names; in this
+case, calls not in the list will not be traced.
+
+.SH "ScratchTrick"
+Provides a safe copy area for arguments.
+
+This trick should be as innermost (rightmost) as possible.
+
+Notice that without this trick, and appropriate tricks to
+actually copy arguments (ArgTrick), traced applications may play nasty
+games with volatile memory, resulting in TraceTrick lying,
+SimplePathSandbox not being effective, etc. However,
+application would have to deliberately play races and in case of
+application being nasty of purpose you have to be very cautious.
+
+.\"SKIP_SECTION"
+.SH LICENSE
+This program is distributed under the terms of the GNU General Public
+License as published by the Free Software Foundation. See ./COPYING in
+main distribution for details on the License and the lack of warranty.
+.SH AVAILABILITY
+The latest version of this program can be found at http://subterfugue.org/.
+.SH SEE ALSO
+strace(1)
+.SH AUTHORS
+See CREDITS file in main distribution.
+.PP
+.SH BUGS
+See the file TODO in the distribution for information on what
+remains to be done.
+.PP
+If you want to report a problem with the program, please send mail to
+this address: subterfugue-dev@lists.sourceforge.net.
+.PP
+Provide a detailed description of the bug, the version of the program
+you are running (sf -V display this information), the operating system
+(including version) and detailed output.
