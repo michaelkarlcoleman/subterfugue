@@ -31,8 +31,6 @@ import Trick
 
 from p_linux_i386 import *
 
-
-
 def usage():
     print """This is subterfugue.  It is used to play various specified tricks on a command.
 
@@ -325,6 +323,8 @@ def do_main(allflags):
 
     set_weedout_masks(tricklist)
 
+    compat_WALL = os.WALL
+
     global fastmainloop
     lastpid = -1
 
@@ -344,13 +344,18 @@ def do_main(allflags):
                                                              waitchannelhack)
                 #print 'sfptrace.mainloop(%s) -> (%s, %s, %s)' % (lastpid, wpid, status, beforecall)
             else:
-                wpid, status = os.waitpid(-1, os.WUNTRACED|os.WALL)
+                wpid, status = os.waitpid(-1, os.WUNTRACED|compat_WALL)
         except OSError, e:
             if e.errno == errno.ECHILD:
                 cleanup(tricklist)
                 sys.exit(0)
             else:
-                sys.exit("%s wait error [%s]" % (sys.argv[0], e))
+		if e.errno == errno.EINVAL:
+		    print "%s wait error: kernel 2.3.50+ or kernel patch for __WALL required for correct operation" % sys.argv[0]
+		    compat_WALL = 0
+		    fastmainloop = 0
+		    continue
+		else: sys.exit("%s wait error [%s]" % (sys.argv[0], e))
         except KeyboardInterrupt:
             # this can't happen (?) because we're ignoring SIGINT
             sys.exit("interrupted")
