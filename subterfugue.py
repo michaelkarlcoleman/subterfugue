@@ -56,6 +56,7 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 --waitchannelhack		enable kludge (required for unpatched
 				2.3.99-2.4.0test9)
 --slowmainloop			disable fast C loop (for debugging)
+--nowall			run w/o wait __WALL flag (bogus 2.2 support)
 """,
 # -p, --attach=PID		attach to and trick process PID
 
@@ -91,7 +92,8 @@ def process_arguments(args):
         options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
                                          ['debug', 'help', 'trick=', 'attach=',
                                           'version', 'output=', 'failnice',
-                                          'slowmainloop', 'waitchannelhack' ])
+                                          'slowmainloop', 'waitchannelhack',
+                                          'nowall'])
     except getopt.error, e:
         usage()
         sys.exit(1)
@@ -178,6 +180,10 @@ def process_arguments(args):
             fastmainloop = 0
         elif opt == '--waitchannelhack':
             waitchannelhack = 1
+	elif opt == '--nowall':
+            # this is a 2.2 compatibility hack, but it breaks control
+	    global wait_flags
+	    wait_flags = wait_flags & ~os.WALL
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -202,7 +208,13 @@ def wake_parent(pid, flags):
     # XXX: optimize by tagging 'waiting' with what we're waiting for (WUNTRACED?)
     if flags.has_key('waiting'):
         # FIX: what if this happens twice while parent is waiting?
-        assert not flags.has_key('waitresult'), "wait queueing not yet implemented"
+        ##assert not flags.has_key('waitresult'), "wait queueing not yet implemented"
+        ## okay, try this: once a waiting parent has been awoken by a wait
+        ## event, which we know will end the parent's wait call, we can just
+        ## skip further queueing, because all that will get noticed on the
+        ## parent's next wait call.
+        if flags.has_key('waitresult'):
+            return
         trick, args = flags['waiting']
         statuspair, wpid, i1, i2 = trick.do_wait(pid, args, flags)
         assert wpid != 0
@@ -377,7 +389,8 @@ def do_main(allflags):
                 sys.exit(0)
             elif e.errno == errno.EINVAL:
                 sys.exit("%s wait error: kernel 2.3.50+ or kernel patch for"
-                         " __WALL required" % sys.argv[0])
+                         " __WALL required (or try --nowall hack)"
+                         % sys.argv[0])
             elif e.errno == errno.EINTR:
                 print "%s wait error: received signal" % sys.argv[0]
                 # FIX: what should we really do here??
@@ -538,6 +551,7 @@ def main():
             kids = allflags.keys()
             if mypid in kids:
                 kids.remove(mypid)
+            print ''
             for p in kids:
                 print 'killing %s with SIGKILL' % p
                 try:

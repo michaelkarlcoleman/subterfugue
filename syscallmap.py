@@ -212,8 +212,8 @@ table = (
     ( 6, 0,	"sys_mmap2",		"mmap2",	None),	# 192
     ( 2, TF,	"sys_truncate64",	"truncate64",	('P', None)),# 193
     ( 2, 0,	"sys_ftruncate64",	"ftruncate64",	None),# 194
-    ( 3, TF,	"sys_stat64",		"stat64",	('P', None)),# 195
-    ( 3, TF,	"sys_lstat64",		"lstat64",	('P', None)),# 196
+    ( 3, TF,	"sys_stat64",		"stat64",	('P', None, None)),# 195
+    ( 3, TF,	"sys_lstat64",		"lstat64",	('P', None, None)),# 196
     ( 3, 0,	"sys_fstat64",		"fstat64",	None),# 197
     ( 3, TF,	"sys_lchown",		"lchown",	('P', None, None)),# 198
     ( 0, 0,	"sys_getuid",		"getuid",	None),# 199
@@ -234,6 +234,12 @@ table = (
     ( 1, 0,	"sys_setgid",		"setgid",	None),# 214
     ( 1, 0,	"sys_setfsuid",		"setfsuid",	None),# 215
     ( 1, 0,	"sys_setfsgid",		"setfsgid",	None),# 216
+                                        # FIX: add to path sandbox
+    ( 2, 0,	"sys_pivot_root",	"pivot_root",	('P', 'P')),# 217
+    ( 3, 0,	"sys_mincore",		"mincore",	None),# 218
+    ( 3, 0,	"sys_madvise",		"madvise",	None),# 219
+    ( 3, 0,	"sys_getdents64",	"getdents64",	None),# 220
+    ( 3, 0,	"sys_fcntl64",		"fcntl64",	None),# 221
     )
 
 
@@ -277,3 +283,14 @@ def lookup_number(callname):
     assert _call_to_number.has_key(callname), \
            "no such call as %s" % callname
     return _call_to_number[callname]
+
+
+def _call_table_is_valid():
+    valid = 1
+    for c in table:
+        if c[SIGNATURE] and c[NARGS] != len(c[SIGNATURE]):
+            print 'syscallmap: call %s signature is wrong length' % c[CALL]
+            valid = 0
+    return valid
+
+assert _call_table_is_valid(), 'syscallmap invalid'

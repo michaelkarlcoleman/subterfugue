@@ -12,9 +12,14 @@ int main(int argc, char *argv[]) {
       continue;
     } else {
       fprintf(stderr, "child: %d here\n", getpid());
-      sleep(10);
+      sleep(5);
       exit(i);
     }
+
+  if (argc > 1) {
+    fprintf(stderr, "parent: sleeping to let child exit statuses queue\n");
+    sleep(10);
+  }
 
   /* parent here */
   while (-1 != (wpid = wait4(-1, &status, 0, 0))) {

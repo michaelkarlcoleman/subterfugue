@@ -3,7 +3,8 @@
 #	$Header$
 
 
-.PHONY : all compilepy dist pushdist install clean distclean
+.PHONY : all compilepy dist pushdist install install_compiled dpkg \
+		clean distclean
 
 # installation directory
 DESTDIR =
@@ -67,8 +68,8 @@ install ::
 	install -d $(DESTDIR)/usr/bin
 	install -d $(DESTDIR)/usr/share/man/man1
 	install -d $(DESTDIR)/usr/share/doc/subterfugue
-	install --mode=444 *.{py,pyo,pyc} $(DESTDIR)$(SUBTERFUGUE_ROOT)
-	install --mode=444 tricks/*.{py,pyo,pyc} \
+	install --mode=444 *.py $(DESTDIR)$(SUBTERFUGUE_ROOT)
+	install --mode=444 tricks/*.py \
 		$(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
 	install $(PYTHON_MODULES) $(DESTDIR)$(PYTHON_SITE)
 	install $(SUBTERFUGUE_MODULES) $(DESTDIR)$(SUBTERFUGUE_ROOT)
@@ -76,6 +77,15 @@ install ::
 	install doc/*.1 $(DESTDIR)/usr/share/man/man1
 	install README NEWS CREDITS INSTALL INTERNALS \
 		$(DESTDIR)/usr/share/doc/subterfugue
+
+install_compiled :: install
+	install --mode=444 *.{pyo,pyc} $(DESTDIR)$(SUBTERFUGUE_ROOT)
+	install --mode=444 tricks/*.{pyo,pyc} \
+		$(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
+
+dpkg ::
+	dpkg-buildpackage -rfakeroot
+	fakeroot debian/rules clean
 
 clean ::
 	-rm -f sf dsf

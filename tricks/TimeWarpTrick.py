@@ -13,8 +13,7 @@
 # memory problem; i.e., other threads can read the true time during a brief
 # race interval.
 
-# FIX: a nice feature would be to support time shift (for testing, or to
-# override buggy software expiration dates, for example).
+# FIX: are we handling time deltas correctly for all calls?
 
 
 from Trick import Trick
@@ -34,7 +33,20 @@ import time
 class TimeWarp(Trick):
     def usage(self):
         return """
-        Warp time to run slower or faster than true time.
+        Warp time to adjust the time considered to be "now" and/or to run
+        slower or faster than true elapsed time. 
+
+        The float parameter 'delta' adjusts "now" relatively.  So, for
+        example, a delta of -10.5 would cause gettimeofday to return a time
+        ten and a half seconds earlier than the true time.
+
+        The float parameter 'now' adjusts "now" absolutely.  It is an absolute
+        count of seconds since the epoch.  Such values can be had from the
+        date command, like so
+
+            --tri=TimeWarp:now=$(date --date='May 7' +%s)
+        or
+            --tri=TimeWarp:now=$(date --date='one week ago' +%s)
 
         The float parameter 'w' is the warp factor.  A factor of 1.0
         corresponds to normal execution.  A factor of 2.0 will make time pass
@@ -46,22 +58,27 @@ class TimeWarp(Trick):
         Warp factors below 1 will probably be better tolerated by the
         application.
 
-        (Keep in mind that SF itself makes programs run slower, so the warp
-        factors are relative.)
+        (Keep in mind that SUBTERFUGUE itself makes programs run somewhat
+        slower, so the warp factors are relative.)
+
+        Any or all options can be combined.
 
         """
     
     def __init__(self, options):
         self.options = options
+        self.w = 1.0
+        self.delta = 0
+        self.start_t = time.time()
         if options.has_key('w'):
             self.w = float(options['w'])
             if self.w <= 0:
                 sys.exit("error: %s: 'w' must be positive\nusage:%s"
                          % (self.__class__.__name__, self.usage()))
-        else:
-            sys.exit("error: %s: option 'w' required\nusage:%s"
-                     % (self.__class__.__name__, self.usage()))
-        self.start_t = time.time()
+        if options.has_key('now'):
+            self.delta = float(options['now']) - self.start_t
+        if options.has_key('delta'):
+	    self.delta = self.delta + float(options['delta'])
 
     def callbefore(self, pid, call, args):
         if call == 'time':
@@ -84,7 +101,7 @@ class TimeWarp(Trick):
     def callafter(self, pid, call, result, state):
         now = time.time()
         delta_t = now - self.start_t
-        now_w = self.start_t + delta_t * self.w
+        now_w = self.start_t + delta_t * self.w + self.delta
         if call == 'time':
             now_wi = int(now_w)
             if state:

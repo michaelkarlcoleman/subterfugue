@@ -8,7 +8,8 @@ export SUBTERFUGUE_ROOT=/path-where-subterfugue-lives
 
 PYFLAGS=
 
-# uncomment to optimize
-PYFLAGS=-O
+# uncomment to optimize (this will disable assertion checking, which probably
+# isn't really a good idea at this point)
+#PYFLAGS=-O
 
 exec python $PYFLAGS $SUBTERFUGUE_ROOT/subterfugue_.py ${1+"$@"} $SUBTERFUGUE_ROOT

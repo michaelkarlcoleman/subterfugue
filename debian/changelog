@@ -1,3 +1,11 @@
+subterfugue (0.2-1) unstable; urgency=medium
+
+  * upgraded to work with 2.4 kernel
+  * first version of package uploaded to Debian queue (closes: #78227)
+  * other minor changes/improvements/bug fixes
+
+ -- Mike Coleman <mkc@debian.org>  Tue, 20 Feb 2001 16:14:01 -0600
+
 subterfugue (0.1.99a-1) unstable; urgency=low
 
   * fix bug that could allow process escape
@@ -12,5 +20,5 @@ subterfugue (0.1.99-1) unstable; urgency=low
 
 Local variables:
 mode: debian-changelog
-add-log-mailing-address "mkc@users.sourceforge.net"
+add-log-mailing-address: "mkc@debian.org"
 End:

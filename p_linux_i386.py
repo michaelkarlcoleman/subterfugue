@@ -113,13 +113,18 @@ def poke_args(pid, nargs, args):
 def trace_syscall(pid, flags, tricklist):
     scno = ptrace.peekuser(pid, ORIG_EAX)
 
-    assert scno < len(syscallmap.table) or scno == _badcall, \
-	   "unknown system call (%s)" % scno
-    if scno != _badcall:
+    assert (0 <= scno < len(syscallmap.table)
+            or scno == _badcall
+            or flags.has_key('sigreturn')), \
+            "unknown system call (=%s, pid=%s, flags=%s)" % (scno, pid, flags)
+
+    if scno == _badcall:
+	call = 'badcall'
+    elif flags.has_key('sigreturn'):
+        call = flags['sigreturn']       # !beforecall
+    else:
 	sysent = syscallmap.table[scno]
 	call = sysent[syscallmap.CALL]
-    else:
-	call = 'badcall'
 
     eax = ptrace.peekuser(pid, EAX)
 

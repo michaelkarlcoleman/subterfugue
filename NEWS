@@ -1,11 +1,26 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
-Version 0.? ("")
+Version 0.2 ("tiger")
+
+* Fixes to make SUBTERFUGUE work again with the 2.4 kernel.  (new system
+  calls, slightly different wait behaviors, etc)
+
+* Added 'now' and 'delta' flags to TimeWarp trick.  Experience the future and
+  the past!
+
+* FixFlash trick fixes a problem with the Macromedia Flash plugin that causes
+  Netscape to hang when Flash tries to use /dev/dsp and it's in use.
 
 * The TRACESYSGOOD patch is included in the kernel as of 2.4.0-test10, so
   revert to disabling the "wait channel hack" by default.  (Only vanilla
   2.3.99 through 2.4.0-test9 need it now.)
+
+* Added '--nowall', which allows sf to run somewhat in a degenerate way under
+  linux 2.2.
+
+* Disable python '-O' flag by default, as it turns off assertion checking,
+  which is still extremely useful at this point.
 
 
 Version 0.1.99a ("superstar")

@@ -1,4 +1,4 @@
-VERSION = '0.1.99a ("superstar")'
+VERSION = '0.2 ("tiger")'
 
 if __name__ == '__main__':
     print VERSION

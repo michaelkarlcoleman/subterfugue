@@ -74,6 +74,7 @@ class p_linux_i386_trick(Trick):
             if call == 'clone':
                 assert len(args) == 2
                 assert not args[0] & clone.CLONE_PTRACE, "oops: CLONE_PTRACE not yet implemented"
+                assert not args[0] & clone.CLONE_THREAD, "oops: CLONE_THREAD not yet implemented"
                 if args[0] & clone.CLONE_PARENT:
                     ppid = flags['parent']
                 newcall = None
@@ -161,7 +162,11 @@ class p_linux_i386_trick(Trick):
                  'execve' : 1,
                  'waitpid' : 1, 'wait4' : 1,
                  'rt_sigaction' : 1, 'sigaction' : 1, 'signal' : 1,
-                 'setpgid' : 1 }
+                 'setpgid' : 1,
+                 # nothing here, but outer tracing code has to be called for
+                 # these to set the 'sigreturn' flag
+                 'sigreturn' : 1, 'rt_sigreturn' : 1,
+                 }
 
     def signal(self, pid, sig):
         flags = self.allflags[pid]

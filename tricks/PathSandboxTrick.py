@@ -51,7 +51,8 @@ def question(q):
     return answer
 
 def readconfig(object, configfile, method, configname):
-    for line in fileinput.FileInput(posix.environ['SUBTERFUGUE_ROOT'] + '/conf/' +configfile, 0, ""):
+#   for line in fileinput.FileInput(posix.environ['SUBTERFUGUE_ROOT'] + '/conf/' +configfile, 0, ""):
+    for line in fileinput.FileInput(configfile, 0, ""):
 	line = re.sub('\012$', '', line)	# kill cariage return
 #	    line = re.sub('\.', '\.', line)
 	if re.match('^#.*', line): continue

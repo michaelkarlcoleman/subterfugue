@@ -1,0 +1,14 @@
+#! /bin/sh -e
+#
+# prerm script for the Debian subterfugue package.
+# cribbed from prerm script for the Debian python-base package.
+# Written 1998 by Gregor Hoffleit <flight@debian.org>.
+#
+
+PACKAGE=subterfugue
+
+dpkg --listfiles $PACKAGE |
+        awk '$0~/\.py$/ {print $0"c\n" $0"o"}' |
+        xargs rm -f >&2
+
+#DEBHELPER#

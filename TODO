@@ -3,13 +3,15 @@ SUBTERFUGUE to-do list
 Here's a list of things to improve or fix, not really in much of a particular
 order.
 
+- look for changes in 2.4 that might obsolete our stuff.  (changes in
+  sys_wait4 in particular)
 
 - need some kind of regression testing (use python regrtest package?)
 
 - check that we're handling things correctly when trick helper processes
   report on wait
 
-- fix zombie accumulation problem (fixed by Pavel's kernel patch?)
+- fix zombie accumulation problem (fixed by Pavel's kernel patch? not in 2.4 anyway)
 - fix /proc/self bug in canonical_path
 
 - interactive sandbox trick (Gtk+ interface)
@@ -20,6 +22,9 @@ order.
   wait4(WUNTRACED|WNOHANG), then checks with kill(pid, 0) to see if it's
   really gone, but it's not, it's a zombie, which probably means we forgot to
   wait for it somehow)
+
+- implement CLONE_THREAD (new in 2.4)
+
 - time tricks to make netscape, staroffice installer work better
 - handle volatile memory problem (which allows evasion)
 O finish project web page docs (motivation)
