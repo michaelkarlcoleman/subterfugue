@@ -138,7 +138,7 @@ class Net(Trick):
 		    paddr = getint(params, i*4)
 #		    print 'Call = ', subcall
 		    address = Memory.getMemory(pid).peek(paddr, addrlen)
-		    address = list(address)
+		    #address = list(address) # WHY?
 		    if not self.checkaddress(self.fdmap[pid][curfd], address, addrlen, call):
 			return (None, -errno.EPERM, None, None)
 		    if debug: print 'Address is ', address
@@ -158,7 +158,7 @@ class Net(Trick):
 
 	    if subcall == 'bind':
 		print 'Trying to bind'
-		return EPERM
+		return (None, -errno.EPERM, None, None)
 
 	    if subcall == 'invalid_call':
 		raise 'Invalid socket call'
