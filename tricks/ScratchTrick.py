@@ -5,7 +5,9 @@
 # This is Pavel Machek's experimental safe scratch area code.  For the moment,
 # it's in this separate trick so that people can play with it.  It may migrate
 # into the core code later.
-
+#
+# Take a look at http://atrey.karlin.mff.cuni.cz/~pavel/dipl/eng.html on design notes
+#
 
 from Trick import Trick
 
