@@ -332,4 +332,10 @@ def _call_table_is_valid():
             valid = 0
     return valid
 
+def full_mask():
+    fullmask = {}
+    for c in table:
+        fullmask[c[3]] = 1
+    return fullmask
+
 assert _call_table_is_valid(), 'syscallmap invalid'

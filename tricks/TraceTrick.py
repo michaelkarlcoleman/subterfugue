@@ -19,7 +19,9 @@ class Trace(Trick):
         return """
         Traces system calls, signals, and process exit (similar to strace(1)).
         The 'call' parameter may specify a list of system call names; in this
-        case, calls not in the list will not be traced.  The 'string' parameter
+        case, calls not in the list will not be traced. The 'ignore' parameter
+        may specify a list of syscall names which will not be traced. (Only one
+        of 'call' and 'ignore' parameters can be used.) The 'string' parameter
         specifies the truncation of string arguments (which are truncated to %s
         characters by default).
 """ % _default_stringlimit
@@ -56,6 +58,11 @@ class Trace(Trick):
             mask = {}
             for c in self.options['call']:
                 mask[c] = 1
+            return mask
+        elif self.options.has_key('ignore'):
+            mask = syscallmap.full_mask()
+            for c in self.options['ignore']:
+                del mask[c]
             return mask
         else:
             return None
