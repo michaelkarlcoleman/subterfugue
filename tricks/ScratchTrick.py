@@ -80,7 +80,7 @@ class Scratch(Trick):
         return {
             'open' : 1, 'getpid' : 1, 'brk' : 1, 'mmap' : 1,  # HACK!!! We actually want _all_ calls here!
             'execve' : 1,
-            'fork' : 1, 'vfork' : 1, 'clone' : 1, # ??
+#           'fork' : 1, 'vfork' : 1, 'clone' : 1, # ??
             }
 
     def exit(self, pid, exitstatus, signal):

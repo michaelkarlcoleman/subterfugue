@@ -133,7 +133,10 @@ def trace_syscall(pid, flags, tricklist):
 	else:
 	    eaxcall = ""
 	# FIX: this probably fires for SIG_DFL stop calls (except SIGSTOP)
-	print 'warning: received SIGTRAP or stray syscall exit: eax = %d (%s)' % (eax, eaxcall)
+	#print 'warning: received SIGTRAP or stray syscall exit: eax = %d (%s)' % (eax, eaxcall)
+        # FIX: is this right?  what's really going on here?
+	raise 'warning: received SIGTRAP or stray syscall exit:' \
+              'pid = %d, eax = %d (%s)' % (pid, eax, eaxcall)
 	#return
 	# FIX: is this the right thing to do?
 	flags['insyscall'] = 1
@@ -330,8 +333,9 @@ def force_syscall(pid, scno, p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0):
     ptrace.pokeuser(pid, EIP, eip-2)
     ptrace.pokeuser(pid, EAX, scno)		# Select new scno and point eip to syscall
     poke_args(pid, 6, [p1, p2, p3, p4, p5, p6])
-    ptrace.syscall(pid,0)			# We make it return to userland and do syscal
+    ptrace.syscall(pid, 0)			# We make it return to userland and do syscal
     wpid, status = os.waitpid(pid, wait_flags)
+    assert pid == wpid
     ptrace.syscall(pid, 0)			# Kernel stops us before syscall is done
     wpid, status = os.waitpid(pid, wait_flags)
     assert pid == wpid				# Kernel stops us when syscall is done

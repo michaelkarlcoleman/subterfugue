@@ -140,10 +140,12 @@ class PathSandbox(Box):
 	signal.signal(signal.SIGUSR1, lambda a, b, t = self: user_signal(a,b,t))
 	signal.signal(signal.SIGUSR2, lambda a, b, t = self: user_signal(a,b,t))
 	configfile = options.get('config',configfile)
+	self.reconfig(configfile, 0)
 
     def onaccess(self, pid, call, r, op, path):
         followlink = 1 # FIXME
 	p = tricklib.canonical_path(pid, path, followlink)
+#	print 'Thinking about ', p, ' my ask is ', self._ask, ' my read is ', self._read, ' and my write is ', self._write
 	if r == -1:
 	    if self.access(pid, p, followlink, self._ask) != 0:
 		return (None, -errno.EACCES, None, None)
