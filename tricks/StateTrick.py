@@ -43,6 +43,7 @@ class StateMachine:
                                # (iff) they (and their args) _match_ a rule
         # read CFG from file
         cur_state = None;
+        self.error = None; # IOError in __init__
         try:
             # accessconfig.py not used because we don't handle lines separately
             file = fileinput.FileInput(cfg_file)
@@ -133,7 +134,7 @@ class StateMachine:
                     sys.exit("Error in %s: unrecognized line %d: %s" % \
                                  (cfg_file, file.lineno(),line))
         except IOError, e:                   # error while reading config file
-            sys.exit("Error reading %s (%s)" % (cfg_file, e[1]))
+            self.error = e
 
     def get_callmask(self):
         if self.ignore_calls:
@@ -263,7 +264,7 @@ class State(Trick):
         DEFINE COUNT Count
         
         # ignore those calls (allowed, won't change states)
-        IGNORE brk fstat64
+        # IGNORE brk fstat64
         
         # define state, 'START' is implicit
         STATE START
@@ -277,6 +278,8 @@ class State(Trick):
         mmap(-1073749156)
         # munmap will change program's state to state 'FORKING'
         munmap() -> FORKING
+        # other syscalls than those defined above are not allowed in START
+        # (IGNORED and not WATCHED are allowed too)
 
         # define new state, no tricks enabled here
         STATE FORKING
@@ -302,8 +305,15 @@ class State(Trick):
 """
 
     def __init__(self, options):
-        self.machine = StateMachine(options.get('config', default_cfg_file),
-                                    options['_command'])
+        cfg_file = options.get('config', default_cfg_file)
+        
+        self.machine = StateMachine(cfg_file, options['_command'])
+        
+        if self.machine.error:
+            print self.usage()
+            sys.exit("Error reading %s (%s)" % \
+                     (cfg_file, self.machine.error[1]))
+
         self.verbosity = options.get('verbose', 0)
         self.state = {} # { pid: state, pid2: state2, ... }
  
