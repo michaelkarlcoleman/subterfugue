@@ -16,7 +16,7 @@ compilepy ::
 	python    -c 'import compileall; compileall.main()' .
 	python -O -c 'import compileall; compileall.main()' .
 
-python-ptrace/ptracemodule.so :
+python-ptrace/ptracemodule.so : python-ptrace/ptracemodule.c
 	cd python-ptrace && make -f Makefile.pre.in boot && make
 
 version := $(shell python version.py | awk '{ print $$1 }')
