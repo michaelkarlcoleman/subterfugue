@@ -86,10 +86,10 @@ class Box(Trick):
 	try:
 	    mode = os.stat(path)[stat.ST_MODE]
 	except OSError, e:
-	    return 1
+	    return e.errno
 	if not (mode & 0004):
-		return 0
-	return 1
+	    return -1
+	return 0
 
     def access(self, pid, path, followlink, validlist):
         """check path against the prefixes in validlist, returning 0 if valid, -1
@@ -102,14 +102,15 @@ class Box(Trick):
         for d in validlist:
 	    c = d[0]
 	    d = d[1:]
-#            print 'considering %s, %s' % (cpath, d)
             if string.find(cpath, d) == 0:
                 if (len(cpath) == len(d)
                     or cpath[len(d)] == '/'
                     or d[-1] == '/'):
 		    if c == '-': return -1;
 		    if c == '+': return 0;
-		    if c == '?' and self.file_is_public(path): return 0;
+		    if c == '?':
+			r = self.file_is_public(path)
+			if r != -1: return r
         return -1
 
     def __init__(self, options):
