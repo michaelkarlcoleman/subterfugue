@@ -64,7 +64,7 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 
 def version():
     print """subterfugue %s
-Copyright (C) 2000  Mike Coleman, Pavel Machek
+Copyright 2000, 2001  Mike Coleman, Pavel Machek
 SUBTERFUGUE comes with ABSOLUTELY NO WARRANTY.  You may redistribute copies of
 SUBTERFUGUE under the terms of the GNU General Public License.  For more
 information about these matters, see the file named COPYING. 

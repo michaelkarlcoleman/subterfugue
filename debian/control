@@ -9,8 +9,8 @@ Package: subterfugue
 Architecture: i386
 Depends: python-base (>=1.5.2)
 Recommends: python-gtk
-Suggests: kernel-source (>=2.4.0) | kernel-image (>=2.4.0)
 Description: Tool for subverting programs--"strace meets expect"
  SUBTERFUGUE is a framework for observing and playing with the reality of
  software; it's a foundation for building tools to do tracing, sandboxing, and
  many other things.  You could think of it as "strace meets expect."
+ [requires 2.4 kernel]

@@ -59,7 +59,7 @@ dist ::
 
 pushdist ::
 	[ -e ../$(distfile) -a -e ../$(debfile) ] || exit 1
-	cd .. && ncftpput -V download.sourceforge.net /incoming \
+	cd .. && ncftpput -V upload.sourceforge.net /incoming \
 		$(distfile) $(debfile)
 
 install ::
