@@ -2,6 +2,11 @@
 # Sample debian/rules that uses debhelper.
 # GNU copyright 1997 to 1999 by Joey Hess.
 
+# when changing this, need to bump control and .postinst, too!
+PYTHON_VERSION := 2.1
+PYTHON_COMMAND = python$(PYTHON_VERSION)
+
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -18,7 +23,7 @@ build: configure-stamp build-stamp
 build-stamp:
 	dh_testdir
 	# Add here commands to compile the package.
-	$(MAKE)
+	$(MAKE) PYTHON_VERSION=$(PYTHON_VERSION) PYTHON_COMMAND=$(PYTHON_COMMAND)
 	#/usr/bin/docbook-to-man debian/subterfugue.sgml > subterfugue.1
 	touch build-stamp
 
@@ -27,7 +32,7 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
+	-$(MAKE) PYTHON_VERSION=$(PYTHON_VERSION) PYTHON_COMMAND=$(PYTHON_COMMAND) distclean
 	dh_clean
 
 install: build
@@ -36,7 +41,7 @@ install: build
 	dh_clean -k
 	dh_installdirs
 	# Add here commands to install the package into debian/<packagename>
-	$(MAKE) DESTDIR=`pwd`/debian/`dh_listpackages` install
+	$(MAKE) PYTHON_VERSION=$(PYTHON_VERSION) PYTHON_COMMAND=$(PYTHON_COMMAND) DESTDIR=`pwd`/debian/`dh_listpackages` install
 
 
 # Build architecture-independent files here.

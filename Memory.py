@@ -10,6 +10,8 @@
 # Pavel's Memory22 class may go away, because right now a backport to 2.2.x
 # doesn't look very good.
 
+# all of this pretty much assumes x86 word size and endianness, currently
+
 
 from StringIO import StringIO
 
@@ -17,6 +19,8 @@ import errno
 import linux
 import os
 import ptrace
+import string
+import struct
 
 
 _allmemory = {}
@@ -124,9 +128,29 @@ class Memory24(Memory):
             self.save.insert(0, (fortrick, address,
                                  self.peek(address, len(data))))
             # XXX: could check whether poke is a noop here
-        _memseek(self.m, address)
-        r = os.write(self.m, data)
-        assert r == len(data)           # FIX
+
+        # This fails since write access to mem has been disabled in 2.4 kernels
+        # _memseek(self.m, address)
+        #r = os.write(self.m, data)
+        #assert r == len(data)           # FIX
+
+        # a better implementation may be possible here
+        if len(data) > 0:
+            address1 = address + len(data)
+            pa0 = address / 4 * 4
+            pa1 = (address1 - 1) / 4 * 4 + 4
+            for pa in xrange(pa0, pa1, 4):
+                a = pa - address
+                if address <= pa and pa + 4 <= address1:
+                    s = data[a:a+4]
+                else:
+                    s = list(self.peek(pa, 4))
+                    for i in xrange(4):
+                        if address <= pa + i < address1:
+                            s[i] = data[a+i]
+                    s = string.join(s, '')
+                ptrace.pokedata(self.pid, pa, struct.unpack('=l', s)[0])
+
 
 
 class Memory22(Memory):
@@ -171,5 +195,11 @@ def _xtoi(s, offset):
 
 def _memseek(f, address):
     "seek in /proc/<n>/mem using signed address"
-    r = linux.lseek(f, address, 0)
+    try:
+        r = linux.lseek(f, address, 0)
+    except OSError, e:
+        if e.errno == errno.EINVAL:
+            print "Yikes, you're using a broken -ac kernel." \
+                  "  Upgrade or switch to a vanilla kernel"
+        raise
     assert r == address, '_memseek: %s != %s' % (r, address)

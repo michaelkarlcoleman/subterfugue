@@ -2,12 +2,12 @@ Source: subterfugue
 Section: utils
 Priority: optional
 Maintainer: Mike Coleman <mkc@debian.org>
-Build-Depends: debhelper, python-dev
+Build-Depends: debhelper, python2.1-dev
 Standards-Version: 3.1.1
 
 Package: subterfugue
 Architecture: i386
-Depends: python-base (>=1.5.2)
+Depends: python2.1
 Recommends: python-gtk
 Description: Tool for subverting programs--"strace meets expect"
  SUBTERFUGUE is a framework for observing and playing with the reality of

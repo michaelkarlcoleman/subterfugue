@@ -1,3 +1,14 @@
+subterfugue (0.2.1-1) unstable; urgency=high
+
+  * upgrade to conform to new Debian Python Policy (closes: #119237)
+  * port to Python 2.1.1
+  * fix poke bug (2.4 disallows writes to /proc/<n>/mem
+  * add check for broken Red Hat kernel
+  * fix compiler warnings
+  * fix broken TimeWarp example
+
+ -- Mike Coleman <mkc@mathdogs.com>  Sun, 25 Nov 2001 22:21:23 -0600
+
 subterfugue (0.2-1) unstable; urgency=medium
 
   * upgraded to work with 2.4 kernel

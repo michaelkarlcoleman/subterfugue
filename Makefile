@@ -9,8 +9,12 @@
 # installation directory
 DESTDIR =
 
+# FIX: this breaks in version 10?
+PYTHON_VERSION = $(shell python -c 'import sys; print sys.version[:3]')
+PYTHON_COMMAND = python
+
 SUBTERFUGUE_ROOT = /usr/lib/subterfugue
-PYTHON_SITE = /usr/lib/python1.5/site-packages
+PYTHON_SITE = /usr/lib/python$(PYTHON_VERSION)/site-packages
 
 PYTHON_MODULES = modules/ptracemodule.so modules/svr4module.so
 SUBTERFUGUE_MODULES = modules/_subterfuguemodule.so
@@ -20,11 +24,13 @@ all :: $(MODULES) sf dsf compilepy
 
 sf : sf.in
 	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$(SUBTERFUGUE_ROOT)'|' \
+	    -e 's|python-command|$(PYTHON_COMMAND)|' \
 		$< > $@ || rm $@
 
 # development version of 'sf'
 dsf : sf.in
 	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' \
+	    -e 's|python-command|$(PYTHON_COMMAND)|' \
 	    -e 's|#DSF#||' \
 		$< > $@ || rm $@
 	chmod a+rx $@
@@ -36,7 +42,7 @@ compilepy ::
 modules/%.so : modules/%.c
 	cd modules \
 	&& (test -e Makefile.pre.in \
-	    || ln -s /usr/lib/python1.5/config/Makefile.pre.in) \
+	    || ln -s /usr/lib/python$(PYTHON_VERSION)/config/Makefile.pre.in) \
 	&& make -f Makefile.pre.in boot \
 	&& make
 

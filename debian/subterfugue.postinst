@@ -5,6 +5,8 @@
 # Written 1998 by Gregor Hoffleit <flight@debian.org>.
 #
 
+PYTHON_VERSION=2.1
+
 PACKAGE=subterfugue
 DIRLIST="/usr/lib/subterfugue"
 
@@ -12,8 +14,8 @@ case "$1" in
     configure|abort-upgrade|abort-remove|abort-deconfigure)
 
         for i in $DIRLIST ; do
-            python -O /usr/lib/python1.5/compileall.py -q $i
-            python /usr/lib/python1.5/compileall.py -q $i
+            python -O /usr/lib/python${PYTHON_VERSION}/compileall.py -q $i
+            python /usr/lib/python${PYTHON_VERSION}/compileall.py -q $i
         done
     ;;
 

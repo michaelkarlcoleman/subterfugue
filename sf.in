@@ -12,4 +12,4 @@ PYFLAGS=
 # isn't really a good idea at this point)
 #PYFLAGS=-O
 
-exec python $PYFLAGS $SUBTERFUGUE_ROOT/subterfugue_.py ${1+"$@"} $SUBTERFUGUE_ROOT
+exec python-command $PYFLAGS $SUBTERFUGUE_ROOT/subterfugue_.py ${1+"$@"} $SUBTERFUGUE_ROOT

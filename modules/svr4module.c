@@ -19,7 +19,7 @@ static PyObject *ErrorObject;
 
 /* Set a POSIX-specific error from errno, and return NULL */
 static PyObject *
-posix_error()
+posix_error(void)
 {
   return PyErr_SetFromErrno(PyExc_OSError);
 }
@@ -85,7 +85,7 @@ static PyMethodDef svr4_methods[] = {
 /* Initialization function for the module */
 
 DL_EXPORT(void)
-initsvr4()
+initsvr4(void)
 {
   PyObject *m, *d;
 

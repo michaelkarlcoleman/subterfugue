@@ -36,7 +36,7 @@ static PyObject *ErrorObject;
 
 /* Set a POSIX-specific error from errno, and return NULL */
 static PyObject *
-posix_error()
+posix_error(void)
 {
   return PyErr_SetFromErrno(PyExc_OSError);
 }
@@ -300,7 +300,7 @@ static PyObject *
 ptrace_settracesysgood(PyObject *self, PyObject *args)
 {
   pid_t pid;
-  long int result, data;
+  long int result;
   
   if (!PyArg_Parse(args, "(i)", &pid))
     return NULL;
@@ -346,7 +346,7 @@ static PyMethodDef ptrace_methods[] = {
 /* Initialization function for the module */
 
 DL_EXPORT(void)
-initptrace()
+initptrace(void)
 {
   PyObject *m, *d;
 

@@ -126,6 +126,11 @@ Written by Mike Coleman, with contributions by Pavel Machek.
 Yes, there are bugs.  SUBTERFUGUE is still fairly experimental.  See the web
 site and the TODO file.
 .PP
+The biggest known bug is that each process run under sf will not have its
+zombie reaped until sf itself exits, which can lead to a lot of zombies,
+filling your process table, etc.  Solving this problem will require a kernel
+patch or a rewrite of sf, unfortunately.
+.PP
 \fBDon't run sf as root, or with programs where a loss of state would be
 disastrous (e.g., fetchmail), unless you really know what you're doing.\fR
 .PP

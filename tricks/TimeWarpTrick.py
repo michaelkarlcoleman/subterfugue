@@ -46,7 +46,7 @@ class TimeWarp(Trick):
 
             --tri=TimeWarp:now=$(date --date='May 7' +%s)
         or
-            --tri=TimeWarp:now=$(date --date='one week ago' +%s)
+            --tri=TimeWarp:now=$(date --date='1 week ago' +%s)
 
         The float parameter 'w' is the warp factor.  A factor of 1.0
         corresponds to normal execution.  A factor of 2.0 will make time pass

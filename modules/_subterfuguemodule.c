@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 
 /* these defines are needed if we're compiling under libc5 (ugh) */
@@ -39,7 +40,7 @@ static PyObject *ErrorObject;
 
 /* Set a POSIX-specific error from errno, and return NULL */
 static PyObject *
-posix_error()
+posix_error(void)
 {
   return PyErr_SetFromErrno(PyExc_OSError);
 }
@@ -261,7 +262,7 @@ static PyMethodDef subterfugue_methods[] = {
 /* Initialization function for the module */
 
 DL_EXPORT(void)
-init_subterfugue()
+init_subterfugue(void)
 {
   PyObject *m, *d;
 
