@@ -24,7 +24,7 @@ process flags -
 		  which will be assigned as each reports
 - startup : if present, the process is just starting, or just did an exec, and
 	    needs to skip one (redundant) stop
-- exiting : if present, the process has entered the _exit system call
+#- exiting : if present, the process has entered the _exit system call
 - exit_signal : signal that will be sent to parent when this process exits.
 		Linux considers a process to be a "clone" iff its exit signal
 		is not SIGCHLD.

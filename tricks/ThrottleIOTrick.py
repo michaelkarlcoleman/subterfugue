@@ -19,7 +19,8 @@ class ThrottleIO(Trick):
         if options.has_key('bps'):
             self.bps = options['bps']
         else:
-            sys.exit("error: %s: option required" % self.__class__.__name__)
+            sys.exit("error: %s: option required\nusage:%s"
+                     % (self.__class__.__name__, self.usage()))
 
     def callbefore(self, pid, call, args):
         assert call == 'read' or call == 'write'

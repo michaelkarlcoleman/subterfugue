@@ -12,4 +12,8 @@ sys.path.insert(2, SUBTERFUGUE_ROOT + '/python-ptrace')
 
 import subterfugue
 
+# use this version for profiling
+#import profile
+#profile.run("subterfugue.main()")
+
 subterfugue.main()

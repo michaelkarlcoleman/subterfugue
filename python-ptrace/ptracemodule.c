@@ -269,7 +269,7 @@ ptrace_getppid(PyObject *self, PyObject *args)
 #endif
 
 
-/* This really belongs in the base Python libraries, but for now, it's getting
+/* These really belong in the base Python libraries, but for now, it's getting
  * stuffed here.  (FIX)
  */
 
@@ -294,6 +294,26 @@ ptrace_getpgid(PyObject *self, PyObject *args)
 }
 
 
+static char ptrace_fchdir__doc__[] =
+"fchdir(fd) -> None\n\
+Change the current working directory to directory opened as fd.";
+
+static PyObject *
+ptrace_fchdir(PyObject *self, PyObject *args)
+{
+  int fd;
+  long int result;
+
+  if (!PyArg_Parse(args, "(i)", &fd))
+    return NULL;
+  
+  result = fchdir(fd);
+
+  if (result == -1)
+    return posix_error();
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 
 /* List of functions defined in the module */
@@ -317,6 +337,7 @@ static PyMethodDef ptrace_methods[] = {
 	method(getppid),
 #endif
 	method(getpgid),
+	method(fchdir),
 	{ NULL }		/* sentinel */
 };
 

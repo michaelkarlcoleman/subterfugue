@@ -34,6 +34,35 @@ os.WCLONE = 0x80000000
 # a bogus syscall number, used to annul calls
 _badcall = 0xbadca11
 
+# pids to skip next callafter for
+_skipcallafter = {}
+
+# XXX: does this weedout mask optimization actually speed things up enough to
+# be worth the complexity?
+def set_weedout_masks(tricklist):
+    global _call_weedout_mask, _signal_weedout_mask
+
+    ncall = len(syscallmap.table)
+    nsig = 64                           # NSIG
+    _call_weedout_mask = [0] * ncall
+    _signal_weedout_mask = [0] * nsig
+
+    for trick, callmask, signalmask in tricklist:
+        if callmask:
+            for n in map(syscallmap.lookup_number, callmask.keys()):
+                _call_weedout_mask[n] = 1
+        else:
+            _call_weedout_mask = [1] * ncall
+        if signalmask:
+            for n in map(signalmap.lookup_number, signalmask.keys()):
+                _signal_weedout_mask[n] = 1
+        else:
+            _signal_weedout_mask = [1] * nsig
+
+    # XXX: does this speed up lookups?
+    _call_weedout_mask = tuple(_call_weedout_mask)
+    _signal_weedout_mask = tuple(_signal_weedout_mask)
+
 
 def trace_syscall(pid, flags, tricklist):
     scno = ptrace.peekuser(pid, ORIG_EAX)
@@ -48,7 +77,8 @@ def trace_syscall(pid, flags, tricklist):
 
     eax = ptrace.peekuser(pid, EAX)
 
-    if eax != -errno.ENOSYS and not flags.has_key('insyscall'): # XXX: is this test right?
+    beforecall = not flags.has_key('insyscall')
+    if eax != -errno.ENOSYS and beforecall: # XXX: is this test right?
         if call == 'execve' and debug():
             print 'debug: ignoring additional execve stop'
             return
@@ -64,159 +94,187 @@ def trace_syscall(pid, flags, tricklist):
         flags['state'] = {}
         flags['call_changes'] = {}
 
-    if not flags.has_key('insyscall'):
-        args = []
-        nargs = sysent[syscallmap.NARGS]
-        assert nargs <= 6, "kernel doesn't support 7+ args?"
-        for i in range(nargs):
-            args.append(ptrace.peekuser(pid, 4 * i))
+    global _skipcallafter
+    if beforecall:
+        if not _call_weedout_mask[scno]:
+            _skipcallafter[pid] = 1
+            flags['insyscall'] = 1
+            ptrace.syscall(pid, 0)
+            return
+        return trace_syscall_before(pid, flags, tricklist, call, scno, sysent)
 
-        call_save = call
-        args_save = args[:]
-        call_changes = {}
-
-        state = {}
-        for trick, callmask, signalmask in tricklist:
-            if not callmask or callmask.has_key(call):
-                r = trick.callbefore(pid, call, args)
-                # r is None or (state, result, call, args)
-                if r:
-                    assert len(r) == 4, "callbefore must return None or a 4-tuple"
-                    if r[1] != None:
-                        # annul the call
-                        call_changes[trick] = call
-                        call = _badcall
-                        args = []
-                        flags['annul'] = (r[1], trick)
-                        break
-                    if r[0] != None:
-                        state[trick] = r[0]
-                    if r[2] != None:
-                        call_changes[trick] = call
-                        call = r[2]
-                        assert isinstance(call, types.StringType)
-                    if r[3] != None:
-                        args = r[3]
-                        assert len(args) <= 6, "kernel doesn't support 7+ args?"
-
-        # STATE at this point ?
-        # call_changes, args, args_save, scno, call, call_save, state, ???
-
-        flags['call_changes'] = call_changes
-
-        # make any necessary changes to child's args, saving undo info
-        # (XXX: hmm, is this actually better than the iterative version?)
-        def _alter_arg(number, arg, saved_arg, pid=pid):
-            if not saved_arg:
-                saved_arg = ptrace.peekuser(pid, 4 * number)
-            if arg != saved_arg:
-                if debug():
-                    print "ptrace.pokeuser(%s, %s, %s)" % (pid, 4 * number, arg)
-                ptrace.pokeuser(pid, 4 * number, arg)
-                return (number, saved_arg)
-
-        n = len(args)
-        args_delta = filter(None,
-                            map(_alter_arg, range(n), args, args_save[:n]))
-        if args_delta:
-            flags['args_delta'] = args_delta
-
-        if call == 'sigreturn' or call == 'sig_rt_return':
-            flags['sigreturn'] = call
-
-        if call != call_save:
-            if isinstance(call, types.StringType):
-                callno = syscallmap.lookup_number(call)
-            else:
-                callno = call
-            try:
-                if debug():
-                    print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, callno)
-                ptrace.pokeuser(pid, ORIG_EAX, callno)
-            except OSError, e:
-                sys.exit('panic: call alter failed in trick %s (%s)' % (trick, e))
-            flags['call_delta'] = scno
-                        
-        flags['state'] = state
-        flags['insyscall'] = 1
-        if flags.has_key('newchild'):
-            assert call == 'clone'
-            newppid, tag = flags['newchild'] # FIX: better way to pass these back?
-            del flags['newchild']
-            # XXX: deep copy causes a problem?  CHECK THIS
-            f = copy.copy(flags)
-            f['newchildflags'] = {}
-            f['children'] = []
-            if newppid == pid:
-                f['parent'] = pid
-            f['exit_signal'] = args[0] & clone.CSIGNAL
-            return (newppid, tag, f)
-        return
-    else:
-        result = eax
-        state = flags['state']
-        call_changes = flags['call_changes']
-
-        # FIX: copy/reverse slow?
-        tricklist = tricklist[:]
-
-        # do callafters for tricks we did callbefores on, in reverse order,
-        # minus the annulled trick (if any)
-        if flags.has_key('annul'):
-            result, annultrick = flags['annul']
-            assert isinstance(result, types.IntType), "oops: waitsuspend not cleared?"
-            del flags['annul']
-            call = call_changes[annultrick]
-            while tricklist and tricklist.pop()[0] != annultrick:
-                pass
-        elif flags.has_key('sigreturn'):
-            # we have to do this because ORIG_EAX somehow gets stomped by the
-            # sigreturn calls.  maybe this is a kernel bug?
-            call = flags['sigreturn']
-            del flags['sigreturn']
-        tricklist.reverse()
-
-        memory = getMemory(pid)
-
-        for trick, callmask, signalmask in tricklist:
-            call = call_changes.get(trick, call)
-            if not callmask or callmask.has_key(call):
-                r = trick.callafter(pid, call, result, state.get(trick))
-                if r != None:
-                    result = r
-                memory.pop(trick)
-
-        assert memory.empty()           # all momentary changes got popped
-
-        if result != eax:
-            if debug():
-                print "ptrace.pokeuser(%s, %s, %s)" % (pid, EAX, result)
-            ptrace.pokeuser(pid, EAX, result)
-
-        # undo any changes to child's args made on entry
-        # XXX: this could be skipped if not in paranoid mode (?)
-        # XXX: does this go here?
-        for n, arg in flags.get('args_delta', []):
-            if debug():
-                print "ptrace.pokeuser(%s, %s, %s)" % (pid, 4 * n, arg)
-            ptrace.pokeuser(pid, 4 * n, arg)
-        call_save = flags.get('call_delta', -1)
-        if call_save >= 0:
-            if debug():
-                print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, call_save)
-            ptrace.pokeuser(pid, ORIG_EAX, call_save)
-
-        if flags.has_key('call_delta'):
-            del flags['call_delta']
-        if flags.has_key('args_delta'):
-            del flags['args_delta']
+    if _skipcallafter.has_key(pid):
+        del _skipcallafter[pid]
         del flags['insyscall']
+        ptrace.syscall(pid, 0)
+        return
+    return trace_syscall_after(pid, flags, tricklist, call, eax)
+
+
+def trace_syscall_before(pid, flags, tricklist, call, scno, sysent):
+    args = []
+    nargs = sysent[syscallmap.NARGS]
+    assert nargs <= 6, "kernel doesn't support 7+ args?"
+    for i in range(nargs):
+        args.append(ptrace.peekuser(pid, 4 * i))
+
+    call_save = call
+    args_save = args[:]
+    call_changes = {}
+
+    state = {}
+    for trick, callmask, signalmask in tricklist:
+        if not callmask or callmask.has_key(call):
+            r = trick.callbefore(pid, call, args)
+            # r is None or (state, result, call, args)
+            if r:
+                assert len(r) == 4, "callbefore must return None or a 4-tuple"
+                if r[1] != None:
+                    # annul the call
+                    call_changes[trick] = call
+                    call = _badcall
+                    args = []
+                    flags['annul'] = (r[1], trick)
+                    break
+                if r[0] != None:
+                    state[trick] = r[0]
+                if r[2] != None:
+                    call_changes[trick] = call
+                    call = r[2]
+                    assert isinstance(call, types.StringType)
+                if r[3] != None:
+                    args = r[3]
+                    assert len(args) <= 6, "kernel doesn't support 7+ args?"
+
+    # STATE at this point ?
+    # call_changes, args, args_save, scno, call, call_save, state, ???
+
+    flags['call_changes'] = call_changes
+
+    # make any necessary changes to child's args, saving undo info
+    # (XXX: hmm, is this actually better than the iterative version?)
+    def _alter_arg(number, arg, saved_arg, pid=pid):
+        if not saved_arg:
+            saved_arg = ptrace.peekuser(pid, 4 * number)
+        if arg != saved_arg:
+            if debug():
+                print "ptrace.pokeuser(%s, %s, %s)" % (pid, 4 * number, arg)
+            ptrace.pokeuser(pid, 4 * number, arg)
+            return (number, saved_arg)
+
+    n = len(args)
+    args_delta = filter(None,
+                        map(_alter_arg, range(n), args, args_save[:n]))
+    if args_delta:
+        flags['args_delta'] = args_delta
+
+    if call == 'sigreturn' or call == 'sig_rt_return':
+        flags['sigreturn'] = call
+
+    if call != call_save:
+        if isinstance(call, types.StringType):
+            callno = syscallmap.lookup_number(call)
+        else:
+            callno = call
+        try:
+            if debug():
+                print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, callno)
+            ptrace.pokeuser(pid, ORIG_EAX, callno)
+        except OSError, e:
+            sys.exit('panic: call alter failed in trick %s (%s)' % (trick, e))
+        flags['call_delta'] = scno
+
+    # could continue child hereabouts
+    ptrace.syscall(pid, 0)
+
+    flags['state'] = state
+    flags['insyscall'] = 1
+    if flags.has_key('newchild'):
+        assert call == 'clone'
+        newppid, tag = flags['newchild'] # FIX: better way to pass these back?
+        del flags['newchild']
+        # XXX: deep copy causes a problem?  CHECK THIS
+        f = copy.copy(flags)
+        f['newchildflags'] = {}
+        f['children'] = []
+        if newppid == pid:
+            f['parent'] = pid
+        f['exit_signal'] = args[0] & clone.CSIGNAL
+        return (newppid, tag, f)
+    return
+
+
+def trace_syscall_after(pid, flags, tricklist, call, eax):
+    result = eax
+    state = flags['state']
+    call_changes = flags['call_changes']
+
+    # FIX: copy/reverse slow?
+    tricklist = tricklist[:]
+
+    # do callafters for tricks we did callbefores on, in reverse order,
+    # minus the annulled trick (if any)
+    if flags.has_key('annul'):
+        result, annultrick = flags['annul']
+        assert isinstance(result, types.IntType), "oops: waitsuspend not cleared?"
+        del flags['annul']
+        call = call_changes[annultrick]
+        while tricklist and tricklist.pop()[0] != annultrick:
+            pass
+    elif flags.has_key('sigreturn'):
+        # we have to do this because ORIG_EAX somehow gets stomped by the
+        # sigreturn calls.  maybe this is a kernel bug?
+        call = flags['sigreturn']
+        del flags['sigreturn']
+    tricklist.reverse()
+
+    memory = getMemory(pid)
+
+    for trick, callmask, signalmask in tricklist:
+        call = call_changes.get(trick, call)
+        if not callmask or callmask.has_key(call):
+            r = trick.callafter(pid, call, result, state.get(trick))
+            if r != None:
+                result = r
+            memory.pop(trick)
+
+    assert memory.empty()           # all momentary changes got popped
+
+    if result != eax:
+        if debug():
+            print "ptrace.pokeuser(%s, %s, %s)" % (pid, EAX, result)
+        ptrace.pokeuser(pid, EAX, result)
+
+    # undo any changes to child's args made on entry
+    # XXX: does this go here?
+    for n, arg in flags.get('args_delta', []):
+        if debug():
+            print "ptrace.pokeuser(%s, %s, %s)" % (pid, 4 * n, arg)
+        ptrace.pokeuser(pid, 4 * n, arg)
+    call_save = flags.get('call_delta', -1)
+    if call_save >= 0:
+        if debug():
+            print "ptrace.pokeuser(%s, %s, %s)" % (pid, ORIG_EAX, call_save)
+        ptrace.pokeuser(pid, ORIG_EAX, call_save)
+
+    # could continue child hereabouts
+    ptrace.syscall(pid, 0)
+
+    if flags.has_key('call_delta'):
+        del flags['call_delta']
+    if flags.has_key('args_delta'):
+        del flags['args_delta']
+    del flags['insyscall']
+
 
 
 # FIX: currently this (maybe?) gets called twice for SIGTSTP, SIGTTOU, SIGTTIN
 # if the handler is SIG_DFL.  For the second call, and for the call for
 # SIGSTOP, the reported signal cannot be modified.
 def trace_signal(pid, flags, tricklist, sig):
+    if not _signal_weedout_mask[sig]:
+        return sig
+
     signalname = signalmap.lookup_name(sig)
 
     # innermost trick gets first shot at the signal

@@ -60,24 +60,25 @@ class SimplePathSandbox(Trick):
         getarg = Memory.getMemory(pid).get_string
 
         for i in range(len(sign)):
-            s = sign[i][0]
-            assert s == 'r' or s == 'w'
-            if s == 'r':
-                a = self._read
-                op = 'read'
-            else:
-                a = self._write
-                op = 'write'
-            followlink = len(sign[i]) < 2
-            assert followlink or sign[i][1] == 'l'
-            p = getarg(args[i])
-            r = _access(pid, p, followlink, a)
-            if r == -1:
-                if not self._quiet:
-                    print '%s deny (%s): %s' % (op, call, repr(p))
-                return (None, -errno.EACCES, None, None)
-            elif r != 0:
-                return (None, -r, None, None)
+            if sign[i]:
+                s = sign[i][0]
+                assert s == 'r' or s == 'w'
+                if s == 'r':
+                    a = self._read
+                    op = 'read'
+                else:
+                    a = self._write
+                    op = 'write'
+                followlink = len(sign[i]) < 2
+                assert followlink or sign[i][1] == 'l'
+                p = getarg(args[i])
+                r = _access(pid, p, followlink, a)
+                if r == -1:
+                    if not self._quiet:
+                        print '%s deny (%s): %s' % (op, call, repr(p))
+                    return (None, -errno.EACCES, None, None)
+                elif r != 0:
+                    return (None, -r, None, None)
             
     def callmask(self):
         return _callaccess

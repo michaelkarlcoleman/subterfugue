@@ -251,6 +251,8 @@ def do_main(allflags):
            "panic: internal_trick not an instance of Trick"
     tricklist.append((it, it.callmask(), it.signalmask()))
 
+    set_weedout_masks(tricklist)
+
     while 1:
         if flush_at_call:
             sys.stdout.flush()
@@ -286,23 +288,16 @@ def do_main(allflags):
                 wake_parent(ppid, allflags[ppid])
         flags = allflags[wpid]
 
-        if os.WIFSIGNALED(status):
-            handle_death(wpid, allflags, flags, tricklist,
-                         None, os.WTERMSIG(status))
-            continue
-        if os.WIFEXITED(status):
-            assert not flags.has_key('attached')# FIX: why not?
-            handle_death(wpid, allflags, flags, tricklist,
-                         os.WEXITSTATUS(status), None)
-            continue
-        assert os.WIFSTOPPED(status), "panic: pid %d not stopped" % wpid
-        if debug():
-            print "pid %d stopped, signal = %d" % (wpid, os.WSTOPSIG(status))
+        if os.WIFSTOPPED(status):
+            if debug():
+                print "pid %d stopped, signal = %d" % (wpid, os.WSTOPSIG(status))
 
-        if flags.has_key('startup'):
-            # Hmm: is this an early chance to do something interesting?
-            del flags['startup']
-        else:
+            if flags.has_key('startup'):
+                # Hmm: is this an early chance to do something interesting?
+                ptrace.syscall(wpid, 0)
+                del flags['startup']
+                continue
+
             stopsig = os.WSTOPSIG(status)
             if stopsig != signal.SIGTRAP | 0x80:
                 sig = trace_signal(wpid, flags, tricklist, stopsig)
@@ -350,13 +345,17 @@ def do_main(allflags):
             if newkid:
                 newppid, tag, newflags = newkid
                 allflags[newppid]['newchildflags'][tag] = newflags
+        elif os.WIFSIGNALED(status):
+            handle_death(wpid, allflags, flags, tricklist,
+                         None, os.WTERMSIG(status))
+        else:
+            assert os.WIFEXITED(status), "panic: pid %d not exited" % wpid
+            #assert not flags.has_key('attached')# why not?
+            handle_death(wpid, allflags, flags, tricklist,
+                         os.WEXITSTATUS(status), None)
+        continue
 
-            if flags.has_key('exiting'): # XXX: this clause unnecessary?
-                ptrace.cont(wpid, 0)
-                continue
-
-        ptrace.syscall(wpid, 0)
-    sys.exit(0)
+    assert 0, "loop only ends on raised exception"
 
 
 # failnice means we don't SIGKILL all our children if we abort
@@ -391,5 +390,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

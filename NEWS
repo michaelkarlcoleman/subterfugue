@@ -1,7 +1,19 @@
-SUBTERFUGUE NEWS
+SUBTERFUGUE NEWS - notable changes between versions
 
-* version 0.0 ("slaughter"):
 
-- First public release.
-- Pre-alpha quality, but seems to be able to follow Netscape Navigator and JDK
+Version 0.1 ("somewhere")
+
+* Optimization (for speed) of process following.  (Following 'emacs -nw' with
+  no tricks is now about 30-40% faster.)
+
+* Improved path canonicalization, from a suggestion by Pavel Kankovsky.
+
+* Bug fixes.
+
+
+Version 0.0 ("slaughter")
+
+* First public release.
+
+* Pre-alpha quality, but seems to be able to follow Netscape Navigator and JDK
   'appletviewer' under native Linux threads.

@@ -5,6 +5,7 @@
 import errno
 import os
 
+import ptrace
 
 def getcwd(pid):
     return os.readlink('/proc/%s/cwd' % pid)
@@ -20,7 +21,7 @@ def canonical_path(pid, path, followlink=1):
     # FIX: currently this won't work right if process pid has a CLONE_FS
     # sibling
 
-    cwd = os.getcwd()
+    cwd = os.open(".", os.O_RDONLY)
     d = ''
     count = 32                          # linux kernel will follow at most
                                         # 32 symlinks
@@ -53,4 +54,8 @@ def canonical_path(pid, path, followlink=1):
         else:
             return errno.ELOOP
     finally:
-        os.chdir(cwd)
+        try:
+            ptrace.fchdir(cwd)
+        except OSError, e:
+            # someone may have deleted the saved cwd
+            pass

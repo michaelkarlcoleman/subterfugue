@@ -48,9 +48,6 @@ class p_linux_i386_trick(Trick):
             # list will be longer.  this will be slower, but harmless (?)
             return self._callbefore_wait(pid, args, flags)
 
-        elif call == 'exit':
-            flags['exiting'] = 1
-
         elif call == 'fork' or call == 'clone' or call == 'vfork':
             assert not flags.has_key('newchild')
 
@@ -146,7 +143,6 @@ class p_linux_i386_trick(Trick):
     def callmask(self):
         return { 'fork' : 1, 'vfork' : 1, 'clone' : 1,
                  'execve' : 1,
-                 '_exit' : 1,
                  'waitpid' : 1, 'wait4' : 1,
                  'rt_sigaction' : 1, 'sigaction' : 1, 'signal' : 1,
                  'setpgid' : 1 }
@@ -173,7 +169,7 @@ class p_linux_i386_trick(Trick):
             return (signalmap.lookup_name(dsignal),)
 
     def signalmask(self):
-        pass
+        return { 'SIGTRAP' : 1, 'SIGCHLD' : 1 }
 
 
     # These functions reprise most of the kernel's sys_wait4 (unfortunately).

@@ -4,8 +4,18 @@ Here's a list of things to improve or fix, not really in much of a particular
 order.
 
 
-- finish project web page docs (motivation)
+- add related work links
+- rework patch to eliminate GETPPID
+- rework patch to eliminate 0x80
+- add in Pavel's stuff
 
+- profile/optimize python (try to continue processes ASAP)
+- interactive sandbox trick (Gtk+ interface)
+
+- why doesn't emacs' shell-command work? (uses vfork)
+- time tricks to make netscape, staroffice installer work better
+- handle volatile memory problem (which allows evasion)
+- finish project web page docs (motivation)
 - nicer strace trick
 - man page (or whatever)
 - makefile improvements?
@@ -25,12 +35,9 @@ order.
 - handle siginfo correctly?
 - blocking SIGCONT causes problems?  (doesn't look like it)
 - handle bogus args (bad path ptr, etc)
-- interactive sandbox trick (Gtk+ interface)
 - allow root to run as another user (like strace)
 - more elaborate Memory interface
-- profile/optimize python (try to continue processes ASAP)
 - nice general mapping classes (which map strings to values)
-- handle volatile memory problem (which allows evasion)
 - option for tricks to ignore some children??
 - do early detach of a process we know will die? (like strace)
 - paranoia trick (block anything that could steal control)

@@ -19,3 +19,11 @@ D: original design and core implementation of SUBTERFUGUE
 S: 1705 N.E. 68th St.
 S: Gladstone, MO  64118
 S: USA
+
+N: Pavel Kankovsky
+D: path canonicalization suggestion
+S: Czech Republic
+
+N: Pavel Machek
+D: patches and lots of useful comments
+S: Czech Republic
