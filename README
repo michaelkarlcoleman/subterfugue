@@ -1,4 +1,4 @@
-This is SUBTERFUGUE, version 0.0 ("slaughter").
+This is SUBTERFUGUE.  See 'NEWS' for info on the latest release.
 
 SUBTERFUGUE is a framework for observing and playing with the reality of
 software; it's a foundation for building tools to do tracing, sandboxing, and
@@ -14,9 +14,9 @@ Here's a short (real) "screenshot" which hints at one of its possible uses:
     rm: cannot unlink `/etc/passwd': Permission denied
 
 
-BEWARE: This is a pre-alpha release.  It might not hose your system, but who
-can say?  You probably shouldn't even be reading this.  Don't run this as root
-(yet).  Don't use it to run programs where a loss of state might be disastrous
-(e.g., fetchmail).  Consider yourself warned.
+BEWARE: This is an alpha release.  It might not hose your system, but who can
+say?  You probably shouldn't even be reading this.  Don't run this as root,
+except on a scratch system.  Don't use it to run programs where a loss of
+state might be disastrous (e.g., fetchmail).  Consider yourself warned.
 
 See 'http://subterfugue.org' for more info.

@@ -4,10 +4,12 @@ Here's a list of things to improve or fix, not really in much of a particular
 order.
 
 
-- add related work links
+- fix zombie accumulation problem
+- fix /proc/self bug in canonical_path
+
 - rework patch to eliminate GETPPID
 - rework patch to eliminate 0x80
-- add in Pavel's stuff
+- add in Pavel Machek's stuff
 
 - profile/optimize python (try to continue processes ASAP)
 - interactive sandbox trick (Gtk+ interface)

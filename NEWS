@@ -1,10 +1,10 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
-Version 0.1 ("somewhere")
+Version 0.1.0 ("somewhere")
 
 * Optimization (for speed) of process following.  (Following 'emacs -nw' with
-  no tricks is now about 30-40% faster.)
+  no tricks, for example, is now about 30-40% faster.)
 
 * Improved path canonicalization, from a suggestion by Pavel Kankovsky.
 
