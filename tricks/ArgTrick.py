@@ -12,6 +12,7 @@ import string
 import types
 import FCNTL
 import Memory
+import sys
 
 #from Memory import *
 from Trick import Trick
@@ -19,6 +20,9 @@ import scratch
 import p_linux_i386
 import tricklib
 import re
+
+# FIXME: we need to add O_NOFOLLOW to open's
+# FIXME: what do we do with creat()?
 
 # Copied from SimplePathSandbox
 _callaccess = {
@@ -68,13 +72,9 @@ class Arg(Trick):
 
     def usage(self):
         return """
-        This trick rewrites path arguments to their fully qualified
-        equivalents and stores them in safe memory (so that they cannot be
-        modified by another thread during a system call).
-
-        It also allows you to do regexp substitution on paths passed to system
-        calls.  This can be used to generate something chroot-like (for
-        example), or to fake access to a file you can not overwrite.
+        Allows you to do regexp substitution on paths passed to system
+        calls. This can be used to generate something chroot-like (for
+        example), or to fake file you can not overwrite.
 
         Example:  --trick=Arg:s1=['^/'];s2=['/strange_chroot_jail']
         Example:  --trick=Arg:s1=['^/etc/passwd'];s2=['/etc/termcap']
@@ -101,14 +101,22 @@ class Arg(Trick):
             followlink = len(sign[i]) < 2
             assert followlink or sign[i][1] == 'l'
             p = getarg(args[i])
+	    p = self.mappath(p) # This is still not quite good -- user could pass /home////johanka and bypass this
 	    p = tricklib.canonical_path(pid, p, followlink) # Resolve to FQN
 	    if not isinstance(p, types.StringType):
-#		print 'Panic: what to do when canonical path fails' 
+		print 'Panic: what to do when canonical path fails:', p, '(', getarg(args[i]), ')'
 # FIXME: We need to kill it in order to prevent bad races. But killing it means problems for creat!
 		return (tofree, -p, None, None)
 	    p = self.mappath(p)
-            #print 'doing an alloc_str'
 	    tofree[i], cargs[i] = scratch.alloc_str(p)
+
+	if call=='open':
+#	    cargs[1] = cargs[1] | os.O_NOFOLLOW
+	    cargs[1] = cargs[1] | 0400000	# Not supported by python, yet. This is true for 386
+
+	if call=='creat':
+	    print "Creat disabled, should be modified to open"
+	    return (tofree, -errno.EFAULT, None, None)	# Creat should be rewritten to open()
 	return (tofree, None, None, cargs)
 
     def callafter(self, pid, call, result, state):

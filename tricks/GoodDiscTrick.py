@@ -1,5 +1,5 @@
 # test area writes by adding a disclaimer to each write. Difference
-# from LineDisclaimerTrick is that this actually works.
+# from LineDisclaimerTrick is that it actually works.
 
 #	$Header$
 
