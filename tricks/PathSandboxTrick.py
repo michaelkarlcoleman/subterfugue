@@ -22,56 +22,11 @@ import Memory
 import tricklib
 import fileinput
 import re
+import accessconfig
 
 import signal
 import time
 
-answer = 0;
-
-configfile = 'default'
-
-def user_signal(signo, b, trick):
-    global configfile
-    print 'Rereading config from ', configfile
-    if signo == signal.SIGTERM:
-        raise 'I was asked to kill my children'
-    trick.reconfig(configfile, signo)
-
-def question(q):
-    global answer
-    answer = 0
-    print 'SANDBOX %s' % q
-    try:
-	time.sleep(3600)
-    except IOError:
-	pass
-    if answer == 0:
-	assert 0, 'User failed to respond within one hour'
-    print 'User responded with ', answer
-    return answer
-
-def readconfig(object, configfile, method, configname):
-#   for line in fileinput.FileInput(posix.environ['SUBTERFUGUE_ROOT'] + '/conf/' +configfile, 0, ""):
-    for line in fileinput.FileInput(configfile, 0, ""):
-	line = re.sub('\012$', '', line)	# kill cariage return
-#	    line = re.sub('\.', '\.', line)
-	if re.match('^#.*', line): continue
-	if re.match('^include ', line):
-	    line = re.sub('^include ', '', line)
-	    readconfig(object, line, method, configname)
-	    continue
-
-	# Perform environment variable substitution
-	while 1:
-	    var = re.search('\$[a-zA-Z]+', line)
-	    if not var: break
-	    var   = line[var.start()+1:var.end()]
-	    print 'Should work with variable ', var, ' containing ', posix.environ[var]
-	    line = re.sub('\$'+var, posix.environ[var], line)
-
-	if not re.match('^'+configname, line): continue
-	line = re.sub('^'+configname+' ', '', line)
-	method(line)
 
 class PathSandbox(Box):
     def usage(self):
@@ -151,17 +106,12 @@ class PathSandbox(Box):
 		    raise 'Syntax error in config file (2)'
 
     def __init__(self, options):
-	global configfile
 	Box.__init__(self, options)
 	self._quiet = 0
 # Common code, again
 	print 'SANDBOX MYPID ', os.getpid()
-	signal.signal(signal.SIGHUP,  lambda a, b, t = self: user_signal(a,b,t))
-	signal.signal(signal.SIGTERM, lambda a, b, t = self: user_signal(a,b,t))
-	signal.signal(signal.SIGUSR1, lambda a, b, t = self: user_signal(a,b,t))
-	signal.signal(signal.SIGUSR2, lambda a, b, t = self: user_signal(a,b,t))
-	configfile = options.get('config',configfile)
-	self.reconfig(configfile, 0)
+	accessconfig.configfile = options.get('config', accessconfig.configfile)
+	accessconfig.Conf.tricksignal(self, signal.SIGHUP) # Force reconfiguration
 
     def onaccess(self, pid, call, r, op, path):
         followlink = 1 # FIXME
@@ -171,7 +121,7 @@ class PathSandbox(Box):
 	    if self.access(pid, p, followlink, self._ask) != 0:
 		return (None, -errno.EACCES, None, None)
 
-	    if question( 'QUESTION (%s): %s %s' % (call, op, p)) == 1:     # Yes (should we use repr(p)? 
+	    if accessconfig.question( 'QUESTION (%s): %s %s' % (call, op, p)) == 1:     # Yes (should we use repr(p)? 
 		return
 	    else:
 		return (None, -errno.EACCES, None, None)
@@ -184,16 +134,14 @@ class PathSandbox(Box):
     def callmask(self):
         return self.callaccess
 
-    def reconfig(self, file, signo):
-	global answer
-	if signo == signal.SIGUSR1: answer = 1	
-	if signo == signal.SIGUSR2: answer = 2
-
+    def initconfig(self):
 	self._read=[]
 	self._write=[]
 	self._ask=[]
-	readconfig(self, file, self.oneline, "path")
+	self.keyname="path"
 
-	print 'self._read = ', self._read
-	print 'self._write = ', self._write
-	print 'self._ask = ', self._ask
+    def tricksignalmask(self):
+	return { 'SIGHUP' : 1, 'SIGUSR1' : 1, 'SIGUSR2' : 1 }
+
+    def tricksignal(self, signo):
+	accessconfig.tricksignal(self, signo)
