@@ -132,7 +132,7 @@ class Box(Trick):
 	subtree. If process may write to something, right to read from
 	it is granted automagically. [FIXME: either fix code so that
 	we can deny read but allow write, or make reads allowed
-	explicitely]
+	explicitly]
 
 	allow * applies to whole patch components. That means that
 	allow read /a does not grant rights to /amaya. [Other matching

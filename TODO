@@ -4,8 +4,13 @@ Here's a list of things to improve or fix, not really in much of a particular
 order.
 
 
-- add distutils packaging
-- need some kind of regression testing
+- debug problem with clone? (netscape) in new kernel
+
+- note difference between class and module variables in tricks, and check that
+  current tricks use these correctly
+
+- add distutils packaging (won't work with tricks?!)
+- need some kind of regression testing (use python regrtest package)
 
 - fix zombie accumulation problem
 - fix /proc/self bug in canonical_path
@@ -16,14 +21,13 @@ order.
 - why doesn't emacs' shell-command work? (uses vfork) [works for me --pavel]
 - time tricks to make netscape, staroffice installer work better
 - handle volatile memory problem (which allows evasion)
-- finish project web page docs (motivation)
+O finish project web page docs (motivation)
 - nicer strace trick
 - add more detail to man page
 - makefile improvements?
 
 - out of memory trick
 - disk full trick
-- timewarp trick
 - if follower crashes while a process in entering a syscall, that call still
   gets executed, even though we SIGKILL the process (?)
 
@@ -44,6 +48,8 @@ order.
 - more elaborate Memory interface
 - nice general mapping classes (which map strings to values)
 - option for tricks to ignore some children??
+- maybe make SF multithreaded, so that child syscalls won't have to be
+  serialized
 - do early detach of a process we know will die? (like strace)
 - paranoia trick (block anything that could steal control)
 - implement process attach

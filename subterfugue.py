@@ -36,6 +36,9 @@ import Trick
 
 from p_linux_i386 import *
 
+# FIX: for jdike test
+from regs_linux_i386 import *
+
 
 def usage():
     print """This is subterfugue.  It is used to play various specified tricks on a command.
@@ -126,6 +129,7 @@ def process_arguments(args):
                 trickarg = r.r_eval('args')
             else:
                 trickarg = {}
+            trickarg['_command'] = command
 
             maketrick = "%s.%s(%s)" % (trickmodule, trick, trickarg)
             try:
@@ -234,10 +238,19 @@ def drop_process(pid, allflags, flags, exitstatus, termsig):
 def handle_death(pid, allflags, flags, tricklist, exitstatus, termsig):
     trace_exit(pid, flags, tricklist, exitstatus, termsig)
     drop_process(pid, allflags, flags, exitstatus, termsig)
+    for k in allflags.keys():
+        if allflags[k].has_key('parent') and not allflags[k].has_key('status'):
+            break
+    else:
+        all_kids_dead(tricklist)
 
 def cleanup(tricklist):
     for trick, callmask, signalmask in tricklist:
         trick.cleanup()
+
+def all_kids_dead(tricklist):
+    cleanup(tricklist)
+    sys.exit(0)
 
 
 # enable ugly hack for those running unpatched 2.4
@@ -376,7 +389,16 @@ def do_main(allflags):
             # new child
             # FIX: what happens if parent or child already dead?
             # FIX: what happens if parent waits before child reports?
-            ppid = ptrace.peekuser(wpid, EDI)
+            try:
+                ppid = ptrace.peekuser(wpid, EDI)
+            except OSError, e:
+                if e.errno == errno.ESRCH:
+                    # If a trick has started a process and it dies, we find
+                    # out here.  Might get here for other reasons, though.
+                    print 'non-traced process exited (?)'
+                    continue
+                else:
+                    raise
             if debug():
                 print "[%s] new child, parent is %s" % (wpid, ppid)
 
@@ -400,7 +422,10 @@ def do_main(allflags):
 
         if os.WIFSTOPPED(status):
             if debug():
-                print "pid %d stopped, signal = %d" % (wpid, os.WSTOPSIG(status))
+                print "pid %d stopped, signal = %d, ORIG_EAX = %d, EAX = %d" \
+                      % (wpid, os.WSTOPSIG(status),
+                         ptrace.peekuser(wpid, ORIG_EAX),
+                         ptrace.peekuser(wpid, EAX))
 
             if flags.has_key('startup'):
                 # XXX: This is a slight race, as we're assuming this is the
@@ -422,7 +447,7 @@ def do_main(allflags):
                 continue
 
             stopsig = os.WSTOPSIG(status)
-
+            
             if waitchannelhack:
                 callstop = sfptrace.atcallstop(wpid, stopsig)
             else:

@@ -37,6 +37,10 @@ class p_linux_i386_trick(Trick):
     def callbefore(self, pid, call, args):
         flags = self.allflags[pid]
 
+        # FIX: backward compat for pre-2.4 kernels, remove later
+        if flags.has_key('skipstop'):
+            del flags['skipstop']
+
         if call == 'rt_sigaction' or call == 'sigaction' or call == 'signal':
             sig = args[0]
             if ((sig == signal.SIGTSTP or sig == signal.SIGTTIN
@@ -135,6 +139,10 @@ class p_linux_i386_trick(Trick):
             if result < 0:
                 # no new child was created, so don't expect it
                 del self.allflags[ppid]['newchildflags'][tag]
+            # in 2.4, kids get a SIGSTOP right after fork, etc
+            # FIX: backward compatibility
+            if result == 0:
+                self.allflags[pid]['skipstop'] = 1
         elif call == 'execve':
             if result < 0:              # exec failed
                 del self.allflags[pid]['exectrappending']
@@ -172,12 +180,18 @@ class p_linux_i386_trick(Trick):
             # parent or child has exec'ed since clone
             # FIX: this deathnotice queueing is probably bogus, too
             dpid, dsignal = flags['deathnotice'].pop(0)
+            #if self.allflags.has_key(dpid): # ???
+            #    del self.allflags[dpid]     # ???
             if not flags['deathnotice']:
                 del flags['deathnotice']
             return (signalmap.lookup_name(dsignal),)
+        elif sig == 'SIGSTOP' and flags.has_key('skipstop'):
+            # in 2.4, there's a gratuitous SIGSTOP right after fork/etc
+            del flags['skipstop']
+            return ('SIG_0',)
 
     def signalmask(self):
-        return { 'SIGTRAP' : 1, 'SIGCHLD' : 1 }
+        return { 'SIGTRAP' : 1, 'SIGCHLD' : 1, 'SIGSTOP' : 1 }
 
 
     # These functions reprise most of the kernel's sys_wait4 (unfortunately).

@@ -13,7 +13,9 @@ class Trick:
         started.  The trick can do any needed initial setup in this method.
 
         The 'options' argument is a dictionary containing any parameters set
-        for this trick on the command line.
+        for this trick on the command line.  In addition,
+        "options['_command']" will be set to a list [ 'command', 'arg1',
+        'arg2' ], etc.
         """
         pass
 
@@ -59,10 +61,9 @@ class Trick:
         The 'result' parameter is the result of the call.  The 'state'
         parameter is the state value passed from the 'callbefore' method.
 
-        This method must return a 1-tuple or None.  The first element, if not
-        None, must be an integer.  In this case, this value becomes the return
-        value for the call.  If the first element is None, 'result' returned
-        as the call's result.
+        This method must return an integer or None.  If an integer is
+        returned, it becomes the return value for the call.  Otherwise,
+        'result' returned as the call's result.
 
         If this method just returns None (or does not have an explicit
         return), this is the same as returning a 1-tuple of None values.

@@ -40,6 +40,8 @@ process flags -
 - waitresult : if present, pid to be returned by wait when it returns
 - skiptrap : if present, the next SIGTRAP should be ignored (because we sent
 	     it)
+- skipstop : if present, the next SIGSTOP should be ignored (in 2.4, a
+  	     gratuitous SIGSTOP is sent after fork/vfork/clone)
 - sigreturn : if present, it means this process has begun a sigreturn or
 	   rt_sigreturn call (the call name is the value).
 - deathnotice : if present, a list of (pid, signal) pairs, where 'pid' is a
