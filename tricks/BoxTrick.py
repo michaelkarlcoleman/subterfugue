@@ -34,7 +34,7 @@ class Box(Trick):
     callaccess = {
 	    'open' : ('w',),                    # conservative approximation
 	    'creat' : ('w',),
-	    'link' : ('rl', 'wl'),
+	    'link' : ('wl', 'wl'),		# we must require write access for source: attacker might hardlink file somewhere he has read/write access, and then just write to it under new name
 	    'unlink' : ('wl',),
 	    'execve' : ('r',),
 	    'chdir' : ('r',),
@@ -51,13 +51,13 @@ class Box(Trick):
 	    'acct' : ('w',),
 	    'umount' : ('w',),
 	    'chroot' : ('r',),
-	    'symlink' : ('w', 'wl'),
+	    'symlink' : ('none', 'wl'),
 	    'oldlstat' : ('rl',),
 	    'readlink' : ('rl',),
 	    'uselib' : ('r',),
 	    'swapon' : ('w',),
 	    'truncate' : ('w',),
-	    'utime' : ('r',),
+	    'utime' : ('w',),
 	    'statfs' : ('r',),
 	    'socketcall' : 1,                   # special case: access domain socket
 	    'stat' : ('r',),
