@@ -14,4 +14,4 @@ if ! type -p xwininfo > /dev/null; then
 fi
 
 exec sf --tri=TimeWarp:w=50.0 xclock -update 1 \
-	$(xwininfo -root | fgrep -e -geometry)
+	$(xwininfo -root | fgrep -e -geometry) ${1+"$@"}

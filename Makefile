@@ -96,6 +96,7 @@ clean ::
 	-cd modules && rm -f *~ *.o *.so Makefile{,.pre} sedscript config.c
 	-cd tricks && rm -f *.py[co] *~
 	-cd scripts && rm -f *~
+	-cd doc && rm -f *~
 	-cd test && $(MAKE) clean
 
 distclean :: clean
