@@ -13,7 +13,8 @@ import errno
 class NetFail(Trick):
     def usage(self):
         return """
-        Causes calls to connect to fail with error EHOSTUNREACH.
+        Causes calls to connect to fail with error EHOSTUNREACH, and calls to
+        listen to fail with EOPNOTSUPP.
 """
     
     def __init__(self, options):
@@ -23,14 +24,16 @@ class NetFail(Trick):
         assert call == 'socketcall'
 
         subcall = args[0]
-        if subcall == 3:                # SYS_CONNECT
+        if subcall == 3:                # connect
             return (None, -errno.EHOSTUNREACH, None, None)
+        if subcall == 4:                # listen
+            return (None, -errno.EOPNOTSUPP, None, None)
         else:
             return (subcall, None, None, None)
 
     def callafter(self, pid, call, result, state):
         assert call == 'socketcall'
-        assert state != 3
+        assert state != 3 and state != 4
 
     def callmask(self):
         # in older kernels, there was a pre-socketcall syscall 'connect',

@@ -1,6 +1,33 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
+Version 0.1.99 ("superstar")
+
+* Added a fix to make SUBTERFUGUE work again with the latest 2.4 kernels.
+  Made usage of the "wait channel hack" the default, for vanilla 2.4 users.
+
+* Added two new tricks, NetThrottle and TimeWarp, which you can see in action
+  now at the bottom of the screenshots page
+  (http://subterfugue.org/screenshot.html).  NetThrottle, in particular, seems
+  like it would be handy for everyday use.  (TimeWarp is more of an amusement,
+  though it might help you cheat at certain arcade games.  :-)
+
+* Added a polished version of the SUBTERFUGUE motivation document to the web
+  site (http://subterfugue.org/motivation.html).  Comments welcome.  It's
+  pretty over-the-top.  Does it sound like it was composed in a remote Montana
+  cabin?  :-0
+
+* Added a man page for sf(1), based on Pavel Machek's original draft.
+
+* Added an 'install' target and Debianization.  Debian and RedHat (via alien)
+  packages will be available with this release.  They haven't been tested much
+  yet, but they're probably pretty safe.
+
+* Reorganized the C extension modules.
+
+* Generally dusted off all of the cobwebs.  SUBTERFUGUE lives!
+
+
 Version 0.1.9 ("pagliacci")
 
 * Added fast (in C) ignored-call loop from Pavel Machek.

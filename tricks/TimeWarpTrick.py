@@ -27,13 +27,16 @@ class TimeWarp(Trick):
 
         The float parameter 'w' is the warp factor.  A factor of 1.0
         corresponds to normal execution.  A factor of 2.0 will make time pass
-        at twice normal speed (e.g., sleep(2) will actually sleep half as
-        long, time(2) will return greater than normal value, etc.)  The factor
-        may be less than 1.0 to make time pass more slowly.  It must be
-        greater than 0.
+        at twice normal speed for the program; to you, it will seem to run
+        "faster" (e.g., sleep(2) will actually sleep half as long, time(2)
+        will return greater than normal value, etc.)  The factor may be less
+        than 1.0 to make time pass more slowly.  It must be greater than 0.
 
         Warp factors below 1 will probably be better tolerated by the
         application.
+
+        (Keep in mind that SF itself makes programs run slower, so the warp
+        factors are relative.)
 
         """
     

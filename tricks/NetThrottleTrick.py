@@ -24,7 +24,15 @@ import time
 class NetThrottle(Trick):
     def usage(self):
         return """
-        Limit network bandwidth usage.
+        Limit network bandwidth usage, by delaying network I/O calls.  This
+        trick has a Gtk GUI to allow interactive control of the bandwidth
+        limit.  An optional parameter 'bps' sets the initial limit, in bytes
+        per second.
+
+        If the GUI is closed by the user (or should crash), the application
+        will continue with the last set limit.  If the limit was 0, however,
+        it will be reset to unlimited (rather than leaving the application
+        hung).
 """
     
     def __init__(self, options):

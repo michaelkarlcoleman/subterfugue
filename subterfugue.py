@@ -311,8 +311,10 @@ def do_main(allflags):
         except OSError, e:
             # FIX: python is reporting ENOENT instead of EPERM for setuid
             #   programs
-            sys.exit('error: exec failed,'
-                     ' maybe bad or setuid/gid command (%s)' % e)
+            sys.exit("error: exec failed ('%s')\n"
+                     "   command may be bad or misspelled\n"
+                     "   command may also be setuid/gid, which isn't supported"
+                     % e)
 
     # only parent gets here
     if debug():
@@ -540,7 +542,8 @@ def main():
                     pass
         if etype == exceptions.SystemExit:
             if evalue.args[0] != 0:
-                print evalue
+                #print evalue  # ???
+                raise
         else:
             traceback.print_exception(etype, evalue, etraceback)
 

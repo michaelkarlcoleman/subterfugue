@@ -1,85 +1,136 @@
-.TH sf 1 "2 April 2000"
-.\"SKIP_SECTION"
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH SF 1 "October 28, 2000"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
 .SH NAME
-sf \- utility to modify environment of other programs
-.\"SKIP_SECTION"
-.SH USAGE
+sf \- utility to watch/alter a program's syscall/signal experience
+.SH SYNOPSIS
 .B sf
-[-todnhV] [--waitchannelhack] [--slowmainloop] command [options for command]
+.RI [ options ] " command command-arg" ...
+.\"[-todnhV] [--waitchannelhack] [--slowmainloop] command [options for command]
 .SH DESCRIPTION
 .LP
-Subterfugue (aka sf) is utility which allows modifying execution
-environment of other programs. How to modify environment is described
-in so called tricks.  For example NetFailTricks makes any network
-operation automatically fail for given command.
-.\".\"DONT_SPLIT"
+The 
+.B sf
+utility runs
+.I command
+under the control of one or more SUBTERFUGUE tricks.  These tricks can
+observe and alter the behavior of 
+.IR command ,
+(and all of the subprocesses and threads it starts) using the
+.BR ptrace (2)
+system call.  For example, the
+.I NetFail
+trick will cause network connection attempts to fail with "host unreachable"
+errors.
 .SH OPTIONS
 .TP
-.I "\-t, \-\-trick=TRICK[:OPTIONS]"
-Use trick with given options. Use sf -t(NameOfTrick) -h to get
-description of given trick along with syntax of any options.
+\fB\-t\fR, \fB\-\-trick\fR=\fITRICK\fR[:\fIOPTIONS\fR]
+use trick with given options, multiple tricks may be given and apply
+successively, left-to-right
 .TP
-.I "\-o, \-\-output=FILE"
-Direct sf output to FILE or, if FILE is number, to a file descriptor.
+\fB\-o\fR, \fB\-\-output\fR=\fIFILE\fR
+direct \fBsf\fR output to a file, or a file descriptor (if FILE is a number)
 .TP
-.I "\-d, \-\-debug"
-Show debugging output
+\fB\-n\fR, \fB\-\-failnice\fR
+allow the command to continue if \fBsf\fR should abort (otherwise \fBsf\fR
+will try to \fBSIGKILL\fR all of the command's processes as it dies)
 .TP
-.I "\-n, \-\-failnice"
-Allow kids to live on even if sf aborts.
+\fB\-\-nowaitchannelhack\fR
+skip the wait channel hack (faster, but only works on patched kernels)
 .TP
-.I "\-h, \-\-help"
-Output help, including help for tricks, and exit.
+\fB\-d\fR, \fB\-\-debug\fR
+show debug output
 .TP
-.I "\-V, \-\-version"
-Output version information, copyright and exit
+\fB\-\-slowmainloop\fR
+disable the optimized main loop, for debugging purposes
 .TP
-.I "\-\-waitchannelhack"
-Kludge needed if running unpatched linux 2.4.
+\fB\-h\fR, \fB\-\-help\fR
+display help (including help for specified tricks) and exit
 .TP
-.I "\-\-slowmainloop" 
-Run mainloop in python, even through faster C code could be used. Good
-for debugging, only.
-
-.SH "NetFailTrick"
-Causes calls to connect to fail with error EHOSTUNREACH.
-
-.SH "TraceTrick"
-Traces system calls, signals, and process exit (similar to strace(1)).
-The 'call' parameter may specify a list of system call names; in this
-case, calls not in the list will not be traced.
-
-.SH "ScratchTrick"
-Provides a safe copy area for arguments.
-
-This trick should be as innermost (rightmost) as possible.
-
-Notice that without this trick, and appropriate tricks to
-actually copy arguments (ArgTrick), traced applications may play nasty
-games with volatile memory, resulting in TraceTrick lying,
-SimplePathSandbox not being effective, etc. However,
-application would have to deliberately play races and in case of
-application being nasty of purpose you have to be very cautious.
-
-.\"SKIP_SECTION"
-.SH LICENSE
-This program is distributed under the terms of the GNU General Public
-License as published by the Free Software Foundation. See ./COPYING in
-main distribution for details on the License and the lack of warranty.
-.SH AVAILABILITY
-The latest version of this program can be found at http://subterfugue.org/.
+\fB\-V\fR, \fB\-\-version\fR
+output version information and exit
+.SH TRICKS
+A trick is a small python module that is interposed between \fIcommand\fR's
+processes and the kernel.  It can catch system calls invoked by these
+processes and signals sent to them, and observe, cancel, or rewrite them.  In
+this way, tricks can exert quite a bit of control over the "reality" these
+processes experience.
+.PP
+The set of tricks that come with SUBTERFUGUE is growing rapidly.  (You can
+easily add more yourself; see the web site for more details.)
+.PP
+The OPTIONS part of a trick argument, if given, is a tiny chunk of python code
+which assigns values to the specified options.  So, for example,
+"--trick=Spam:n=1;foo='bar'" would assign option \fIn\fR the numeric value
+\fI1\fR and option \fIfoo\fR the string value '\fIbar\fR'.
+.PP
+Here are descriptions of a few of the more stable and interesting tricks
+currently available:
+.TP
+.B Trace
+traces system calls, signals, and process exits, like
+.BR strace (1),
+.BR gdb (1).
+.TP
+.B SimplePathSandbox
+controls which files a command can read from and write to.
+.TP
+.B NetFail
+causes network connection attempts to fail with a "host unreachable" error
+(and listen attempts to fail with "operation not supported").
+.TP
+.B NetThrottle
+limits the amount of network bandwidth an application uses; it has a Gtk
+interface so that the limit can be adjusted interactively.
+.PP
+Use the \fB\-\-help\fR flag or check the web site to get more information
+about the usage and limitations of each trick.
+.\" wait until this is tested a little more...  --mkc
+.\"  .SH "ScratchTrick"
+.\"  Provides a safe copy area for arguments.
+.\"
+.\"  This trick should be as innermost (rightmost) as possible.
+.\"
+.\"  Notice that without this trick, and appropriate tricks to
+.\"  actually copy arguments (ArgTrick), traced applications may play nasty
+.\"  games with volatile memory, resulting in TraceTrick lying,
+.\"  SimplePathSandbox not being effective, etc. However,
+.\"  application would have to deliberately play races and in case of
+.\"  application being nasty of purpose you have to be very cautious.
+.SH ENVIRONMENT
+Since tricks are
+.BR python (1)
+modules, PYTHONPATH can be used to add new trick directories.
 .SH SEE ALSO
-strace(1)
+.BR strace (1).
+.PP
+More complete documentation is available at '\fBhttp://subterfugue.org\fR'.
 .SH AUTHORS
-See CREDITS file in main distribution.
-.PP
+Written by Mike Coleman, with contributions by Pavel Machek.
 .SH BUGS
-See the file TODO in the distribution for information on what
-remains to be done.
+Yes, there are bugs.  SUBTERFUGUE is still fairly experimental.  See the web
+site and the TODO file.
 .PP
-If you want to report a problem with the program, please send mail to
-this address: subterfugue-dev@lists.sourceforge.net.
+\fBDon't run sf as root, or with programs where a loss of state would be
+disastrous (e.g., fetchmail), unless you really know what you're doing.\fR
 .PP
-Provide a detailed description of the bug, the version of the program
-you are running (sf -V display this information), the operating system
-(including version) and detailed output.
+Report bugs to <subterfugue-dev@lists.sourceforge.net>.
+.SH UNRESTRICTIONS
+SUBTERFUGUE, including the \fBsf\fR program, is free software, distributed
+under the terms of the GNU GPL; see the source for copying conditions.  There
+is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.

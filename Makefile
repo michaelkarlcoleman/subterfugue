@@ -20,7 +20,6 @@ all :: $(MODULES) sf dsf compilepy
 sf : sf.in
 	sed -e 's|^\(export SUBTERFUGUE_ROOT=\).*$$|\1'$(SUBTERFUGUE_ROOT)'|' \
 		$< > $@ || rm $@
-	chmod a+rx $@
 
 # development version of 'sf'
 dsf : sf.in
