@@ -28,14 +28,23 @@ class NoKill(Trick):
         """
     
     def callbefore(self, pid, call, args):
-	tpid = args[0]	# Fixme: make sure he is not shooting at us.
+	tpid = 'error'	
 	if call == 'ptrace':
 	    return (None, -errno.EPERM, None, None)
 
-	assert call == 'kill'
-        # print 'Do we have key for ', tpid
-        if not tricklib.is_followed(tpid): # Is it inside our sandbox?
+	if call == 'kill':
+	    tpid = args[0]
+
+	if call == 'setpriority':
+	    tpid = args[1]
+
+	# Fixme: make sure he is not shooting at us.
+
+	# print 'Do we have key for ', tpid
+	# Is it inside our sandbox? 
+        if not tricklib.is_followed(tpid): # and not tricklib.is_followed(-tpid):
+	    print 'Attempt to shoot to outside process ', tpid
             return (None, -errno.EPERM, None, None)
 
     def callmask(self):
-        return { 'kill' : 1, 'ptrace' : 1 }
+        return { 'kill' : 1, 'setpriority' : 1, 'ptrace' : 1 }

@@ -251,20 +251,22 @@ sockettable = (
     ( "bind", ('f', 'A', 'l')),
     ( "connect", ('f', 'A', 'l')),
     ( "listen", ('f', 'i')),
-    ( "accept", ('f', 'A', 'lp')), 		# 5
-    ( "getsockname", ('f', 'A', 'lp')),
-    ( "getpeername", ('f', 'A', 'lp')),
+    ( "accept", ('f', 'Ar', 'lp')), 		# 5
+    ( "getsockname", ('f', 'Ar', 'lp')),
+    ( "getpeername", ('f', 'Ar', 'lp')),
     ( "socketpair", ()),
     ( "send", ('f', 'buff', 'len', 'flags')),
     ( "recv", ('f', 'buff', 'Len', 'flags')),   # 10
     ( "sendto", ('f', 'buff', 'Len', 'flags', 'A', 'l')),
-    ( "recvfrom", ('f', 'buff', 'len', 'flags', 'A', 'lp')),
+    ( "recvfrom", ('f', 'buff', 'len', 'flags', 'Ar', 'lp')),
     ( "shutdown", ('f', 'how')),
     ( "setsockopt", ('f', 'level', 'optname', 'optval', 'optlen')),
     ( "getsockopt", ('f', 'level', 'optname', 'optval', 'optlenp')), #15
     ( "sendmsg", ('f', 'msg', 'flags')),
     ( "recvmsg", ('f', 'msg', 'flags')),
     )
+
+sockettable_num = len(sockettable) - 1
 
 # XXX: Move callaccess from BoxTrick here? [Pavel]
 

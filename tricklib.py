@@ -47,14 +47,20 @@ def canonical_path(pid, path, followlink=1):
                 path = path[:len(path) - 1]
 
             d = os.path.dirname(path)
+            b = os.path.basename(path)
+	    if b == '..':
+		d = d + '/..'
+		b = '.'
+		
             try:
                 os.chdir(d)
             except OSError, e:
                 return e.errno
 
-            b = os.path.basename(path)
             if not followlink or not os.path.islink(b):
                 d = os.getcwd()
+		if b == '.':
+		    return d
                 return (d == '/' and '/' or d + '/') + b
 
             try:

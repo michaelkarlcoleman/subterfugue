@@ -97,7 +97,15 @@ class Box(Trick):
 	    return -1
 	return 0
 
-    def access(self, pid, path, followlink, validlist):
+    def ask_question(self, path, call, op):
+	"""Ask user
+
+	Call is actuall system call we are asking about, op is its class (read/write)
+"""
+	print 'Should ask user about ', call, ' (', path, ')'
+	return -1
+
+    def access(self, pid, path, call, op, followlink, validlist):
         """check path against the prefixes in validlist, returning 0 if valid, -1
         if invalid, and an appropriate errno if there were problems with the
         path"""
@@ -114,21 +122,24 @@ class Box(Trick):
                     or d[-1] == '/'):
 		    if c == '-': return -1;
 		    if c == '+': return 0;
-		    if c == '?':
-			r = self.file_is_public(path)
+		    if c == '%':
+			r = self.file_is_public(cpath)
 			if r != -1: return r
+		    if c == '?': return self.ask_question(cpath, call, op)
         return -1
 
     def __init__(self, options):
-	self._read = [ '?/' ]
-	self._write = [ '+/tmp' ]
+	self._read = [ '%/' ]
+	self._write = [ '+/tmp/sandbox' ] # r/w Access to /tmp would allow trick to escape by accessing /tmp/subterfugue_memory
 	self._net = 1			# Socketcalls should be controlled by NetTrick
 
     def onaccess(self, pid, call, r, op, path):
 	"""What to do with each filename is checked"""
         if r == -1:
+	    print 'Denying ', call, ' path ', path
             return (None, -errno.EACCES, None, None)
         elif r != 0:
+	    print 'Error ', call, ' path ', path, ' errno ', r
             return (None, -r, None, None)
 	return 'cont'
 
@@ -193,7 +204,7 @@ class Box(Trick):
                 followlink = len(sign[i]) < 2
                 assert followlink or sign[i][1] == 'l'
                 p = getarg(args[i])
-                r = self.access(pid, p, followlink, a)
+                r = self.access(pid, p, call, op, followlink, a)
 
 		res = self.onaccess(pid, call, r, op, p)
 		if res != 'cont':
@@ -203,8 +214,8 @@ class Box(Trick):
         return self.callaccess
 
 def _abspath(p):
-        """return the abspath of p, but leave any leading '-', '+', '?' alone"""
-	if p[0] == '-' or p[0] == '+' or p[0] == '?':
+        """return the abspath of p, but leave any leading '-', '+', '?', '%' alone"""
+	if p[0] == '-' or p[0] == '+' or p[0] == '?' or p[0] == '%':
             return p[0] + os.path.abspath(p[1:])
 	else:
             return os.path.abspath(p)

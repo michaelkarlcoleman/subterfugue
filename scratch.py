@@ -44,7 +44,8 @@ def init():
 	os.close(handle) # Don't want to leave it...
         _initialized = 1
     except OSError, e:
-	sys.exit('error: could not open mmap-safe file (%s)' % e)
+        # hmm, what class should this exception be?
+	raise OSError('could not open mmap-safe file (%s)' % e)
 
 def alloc_str(s):
     assert _initialized, "this function requires the use of ScratchTrick!"

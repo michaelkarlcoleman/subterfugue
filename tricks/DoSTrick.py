@@ -32,9 +32,9 @@ class DoS(Trick):
         and 'maxproc' each specify limit (on memory and number of
 	processes). If that limit is exceeded, application is
 	killed. Memory limit is expressed in megabytes. Default values
-	are 100 megabytes and 50 processes allowed.
+	are 200 megabytes and 50 processes allowed.
 
-        Example:  --trick=DoS:maxmem=100;maxproc=50
+        Example:  --trick=DoS:maxmem=200;maxproc=50
 
 
 	This is tricky. We do not want to duplicate kernel's memory
@@ -52,10 +52,10 @@ class DoS(Trick):
 """
 
     def __init__(self, options):
-	self.maxmem = 100*1024*1024
+	self.maxmem = 200*1024
 	self.maxproc = 50
         if options.has_key('maxmem'):
-            self.maxmem = options['maxmem']*1024*1024
+            self.maxmem = options['maxmem']*1024
 	if options.has_key('maxproc'):
 	    self.maxproc = options['maxproc']
 
@@ -63,7 +63,7 @@ class DoS(Trick):
 	global nchildren, lastpid, lastbrk, grace
 	if call == 'mmap2':
 	    assert 0, 'mmap2 -- what is that?'
-	if call == 'fork':
+	if call == 'fork' or call == 'vfork' or call == 'clone':
 	    nchildren = nchildren + 1
 	    print 'SANDBOX NUMPROC ', nchildren
 	    if nchildren > self.maxproc:
@@ -95,7 +95,7 @@ class DoS(Trick):
 	params = list(params)
 	size = getint(params, 4)	# We need second argument
 	if (call == 'mmap') and (pid == lastpid) and (grace > size):
-	    print 'size = ', size, ' grace = ', grace
+#	    print 'size = ', size, ' grace = ', grace
 	    grace = grace - size
 	    return (0, None, None, None)
 
@@ -118,4 +118,4 @@ class DoS(Trick):
 		raise 'Too much memory consumed'
         
     def callmask(self):
-        return { 'fork' : 1, '_exit' : 1, 'mmap' : 1, 'munmap' : 1, 'brk' : 1,  'mmap2' : 1 }
+        return { 'fork' : 1, 'vfork' : 1, 'clone' : 1, '_exit' : 1, 'mmap' : 1, 'munmap' : 1, 'brk' : 1,  'mmap2' : 1 }

@@ -100,6 +100,7 @@ class Memory24(Memory):
         
     def peek(self, address, size):
         _memseek(self.m, address)
+        assert size >= 0, 'peek called with size %s' % size
         s = os.read(self.m, size)
         if len(s) < size:
             raise IOError, 'short read'
@@ -146,6 +147,7 @@ class Memory22(Memory):
         "read 'size' bytes of data from memory starting at 'address'"
 
 	print "Peeking %d bytes of data at %d" % (size, address)
+        assert size >= 0, 'peek called with size %s' % size
         s = StringIO()
 	for i in range(size):
 	    c = self._readbyte(address+i)

@@ -52,19 +52,43 @@ def set_skipcallafter(pid):
 
 
 def hard_kill(pid):
-    # SIGKILL isn't delivered until completion of the current syscall; this
-    # function tries to abort the current syscall before killing the child.
-    os.kill(pid, 9)
     # FIX: isn't this a race?  don't we need to wait on the child?
     try:
 	poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
-    except:
-	print "warning: attempt to annul last syscall by zapping args failed"
+    except OSError, e:
+	print "warning: attempt to annul last syscall by zapping args failed" \
+              + " (pid=%s, error=%s)" % (pid, e)
     try:
 	ptrace.pokeuser(pid, ORIG_EAX, _badcall)
+    except OSError, e:
+	print "warning: attempt to annul last syscall" \
+              + " (pid=%s, error=%s)" % (pid, e)
+    try:
+        ptrace.kill(pid)
+    except OSError, e:
+	print "warning: attempt to ptrace.kill process failed" \
+              + " (pid=%s, error=%s)" % (pid, e)
     except:
-	print "warning: attempt to annul last syscall failed"
-    ptrace.kill(pid)
+        # XXX: should we really catch this?  we shouldn't be absorbing
+        # arbitrary exceptions; this will cause trouble
+	print "warning: attempt to ptrace.kill process failed strangely" \
+              + " (pid=%s, error=%s)" % (pid, e)
+        raise
+
+    try: 
+    # SIGKILL isn't delivered until completion of the current syscall; this
+    # function tries to abort the current syscall before killing the child.
+    	os.kill(pid, signal.SIGKILL)
+    except OSError, e:
+	print "warning: attempt to os.kill process failed" \
+              + " (pid=%s, error=%s)" % (pid, e)
+    except:
+        # XXX: as above
+	print "warning: attempt to os.kill process failed strangely" \
+              + " (pid=%s, error=%s)" % (pid, e)
+        raise
+ 
+    print "process %s is dead (we hope)" % pid
 
 
 # XXX: this doesn't belong in a platform-specific file
@@ -344,6 +368,8 @@ def force_syscall(pid, scno, p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0):
     assert pid == wpid
     ptrace.syscall(pid, 0)			# Kernel stops us before syscall is done
     wpid, status = os.waitpid(pid, wait_flags)
+    if wpid != pid:
+	print "problem: other syscall stopped woke up /2: ", pid, " != ", wpid
     assert pid == wpid				# Kernel stops us when syscall is done
     res = ptrace.peekuser(pid, EAX)		# We get the syscall result
     ptrace.pokeuser(pid, EAX, eax)		# and then mimic like nothing happened

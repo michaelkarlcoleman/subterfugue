@@ -58,32 +58,51 @@ class Net(Trick):
 
     def __init__(self, options):
         self.options = options
-        self._filter = options.get('filter', [])
+        self._filter = options.get('filter', ['+.*'])
         self._net = options.get('net', 0)
 	self.fdmap = {} # Fixme: make it local
 
+    def ask_question(self, s, call):
+	return 0
+
+    def in_valid_list(self, s, validlist, call):
+        """Returns true iff it is okay to do the operation"""
+
+        for d in validlist:
+            if re.match(d[1:], s):
+		if (d[0] == '-'):
+		     return 0
+		if (d[0] == '+'):
+		     return 1
+		if (d[0] == '?'):
+		     return self.ask_question(s, call)
+	return 0	# Paranoid.
+
 # Sockaddr_in looks like this: 2 bytes family, 2 bytes port, 4 bytes IPA
 
-    def checkaddress(self, state, addr, addrlen):
+    def checkaddress(self, state, addr, addrlen, call):
 	family, type, protocol = state
 
 	atype = 'Unknown'
-	if family == 2 and type == 1 and protocol == 0:		atype = 'TCP'
-	if family == 2 and type == 2 and protocol == 0:		atype = 'UDP'
-	if family == 1:						atype = 'Unix'
+	asciiaddress = 'Unknown %d,%d,%d' % (family, type, protocol)
+	if family == 2 and type == 1:		atype = 'TCP'
+	if family == 2 and type == 2:		atype = 'UDP'
+	if family == 1:				atype = 'Unix'
 
 	if atype == 'TCP' or atype == 'UDP':
-	    assert addrlen == 16
+	    if addrlen != 16:
+		raise 'Strange size in nettrick'
 	    port = ord(addr[2])<<8 | ord(addr[3])
 	    asciiaddress = "%s %d.%d.%d.%d/%d" % (atype, ord(addr[4]), ord(addr[5]), ord(addr[6]), ord(addr[7]), port)
 	    if debug: print asciiaddress,
 
 	if atype == 'Unix':
-	    assert addrlen > 4
+	    if addrlen < 3:
+		raise 'Strange size in nettrick/2'
 	    asciiaddress = "%s %s" % (atype, addr[2:])
-        print 'Assciiaddress is ', asciiaddress
+#        print 'Asciiaddress is ', asciiaddress
 
-	if tricklib.in_valid_list(asciiaddress, self._filter):
+	if self.in_valid_list(asciiaddress, self._filter, call):
 	    return 1
 	print 'Denying access to ', asciiaddress
 	return 0
@@ -92,6 +111,8 @@ class Net(Trick):
 	state = ()
 	handle2 = handle = -1
 	if call == 'socketcall':
+	    if args[0] > sockettable_num:
+		raise 'Trying to do invalid socketcall?'
 	    subcall, pattern = sockettable[args[0]]
 	    nargs = len(pattern)
 	    if debug: print 'Doing ', subcall, ' with ', nargs, ' parameters', 
@@ -115,15 +136,17 @@ class Net(Trick):
 
 		if pattern[i] == 'A':
 		    paddr = getint(params, i*4)
+#		    print 'Call = ', subcall
 		    address = Memory.getMemory(pid).peek(paddr, addrlen)
 		    address = list(address)
-		    if not self.checkaddress(self.fdmap[pid][curfd], address):
+		    if not self.checkaddress(self.fdmap[pid][curfd], address, addrlen, call):
 			return (None, -errno.EPERM, None, None)
 		    if debug: print 'Address is ', address
 		    handle2, addr2 = scratch.alloc_bytes(address, addrlen)
 		    if debug: print 'Addr = %x' % addr2
 		    setint(params, i*4, addr2)
-		    assert addr2 == getint(params, i*4)
+		    if addr2 != getint(params, i*4):
+			raise 'addr2 not equal to getint'
 
 	    handle, addr = scratch.alloc_bytes(params, nargs*4)
 	    if subcall == 'socket':
@@ -132,6 +155,13 @@ class Net(Trick):
 	    if subcall == 'connect':
 #	        assert 0
 		pass
+
+	    if subcall == 'bind':
+		print 'Trying to bind'
+		return EPERM
+
+	    if subcall == 'invalid_call':
+		raise 'Invalid socket call'
 
 	    if debug: print state, '... copied them to ',
 	    if debug: print '%x' % addr

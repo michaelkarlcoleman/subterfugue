@@ -71,7 +71,7 @@ class Arg(Box):
 	    p = self.mappath(p) # This is still not quite good -- user could pass /home////johanka and bypass this
 	    p = tricklib.canonical_path(pid, p, followlink) # Resolve to FQN
 	    if not isinstance(p, types.StringType):
-		print 'Panic: what to do when canonical path fails:', p, '(', getarg(args[i]), ')'
+#		print 'Panic: what to do when canonical path fails:', p, '(', getarg(args[i]), ')'
 # FIXME: We need to kill it in order to prevent bad races. But killing it means problems for creat!
 		return (tofree, -p, None, None)
 	    p = self.mappath(p)
