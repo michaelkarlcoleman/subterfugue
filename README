@@ -23,3 +23,4 @@ programs where a loss of state might be disastrous (e.g., fetchmail).
 
 See 'http://subterfugue.org' and the sf(1) man page for more info.  See the
 file 'NEWS' in the distribution for info on the latest release.
+
