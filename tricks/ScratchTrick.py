@@ -26,7 +26,14 @@ class Scratch(Trick):
         Provides a safe copy area for arguments.
 
         This trick should be as innermost (rightmost) as possible.
-"""
+
+	Notice that without this trick, and appropriate tricks to
+	actually copy arguments (ArgTrick), traced applications may play nasty
+	games with volatile memory, resulting in TraceTrick lying,
+	SimplePathSandbox not being effective, etc. However,
+	application would have to deliberately play races and in case of
+	application being nasty of purpose you have to be very cautious.  
+	"""
     
     def __init__(self, options):
         # XXX: is this correct?
