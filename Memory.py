@@ -30,6 +30,12 @@ def getMemory(pid):
         _allmemory[pid] = Memory24(pid)
     return _allmemory[pid]
 
+def dropMemory(pid):
+    if _allmemory.has_key(pid):
+        del _allmemory[pid]
+    else:
+        raise
+
 
 class Memory:
     def __init__(self, pid):
@@ -101,6 +107,9 @@ class Memory24(Memory):
         # XXX: maybe the open should be lazy?
         # FIX: what if /proc missing?
         self.m = os.open("/proc/%s/mem" % pid, os.O_RDWR)
+
+    def __del__(self):
+        os.close(self.m)
         
     def peek(self, address, size):
         _memseek(self.m, address)

@@ -62,7 +62,8 @@ class Arg(Box):
         if not isinstance(sign, types.TupleType):
 	    return (tofree, None, None, None)
 
-        getarg = Memory.getMemory(pid).get_string
+        mem = Memory.getMemory(pid)
+        getarg = mem.get_string
 	cargs = args[:]
         for i in range(len(sign)):
             followlink = len(sign[i]) < 2
@@ -76,6 +77,11 @@ class Arg(Box):
 		return (tofree, -p, None, None)
 	    p = self.mappath(p)
 	    tofree[i], cargs[i] = scratch.alloc_str(p)
+ 
+        # don't mess with creation of relative symlinks
+        if call=='symlink':
+            if mem.get_string(args[0])[0] != '/':
+                cargs[0] = args[0]
 
 	if call=='open':
 # FIXME:

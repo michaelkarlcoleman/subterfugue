@@ -247,6 +247,7 @@ def drop_process(pid, allflags, flags, exitstatus, termsig):
         wake_parent(ppid, pflags)
     else:
         del allflags[pid]
+    dropMemory(pid)
 
 
 def handle_death(pid, allflags, flags, tricklist, exitstatus, termsig):
