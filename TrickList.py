@@ -7,7 +7,7 @@
 # This is free software; see COPYING file. No warranty.
 
 import string
-import rexec
+import rexec  # TODO: rexec was removed in Python 2.3 for security reasons
 import sys
 import re
 
