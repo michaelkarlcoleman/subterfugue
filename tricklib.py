@@ -57,10 +57,16 @@ def canonical_path(pid, path, followlink=1):
             return errno.ELOOP
     finally:
         try:
-            ptrace.fchdir(cwd)
-        except OSError, e:
-            # someone may have deleted the saved cwd
-            pass
+            try:
+                ptrace.fchdir(cwd)
+            except OSError, e:
+                # someone may have deleted the saved cwd
+                pass
+        finally:
+            try:
+                os.close(cwd)
+            except OSError, e:
+                pass
 
 
 def in_valid_list(s, validlist):

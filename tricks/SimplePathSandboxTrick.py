@@ -156,7 +156,7 @@ def _access(pid, path, followlink, validlist):
             result = -1
             d = d[1:]
 
-        print 'considering %s, %s' % (cpath, d)
+        #print 'considering %s, %s' % (cpath, d)
         if string.find(cpath, d) == 0:
             if (len(cpath) == len(d)
                 or cpath[len(d)] == '/'

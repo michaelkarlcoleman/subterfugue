@@ -7,10 +7,6 @@ order.
 - fix zombie accumulation problem
 - fix /proc/self bug in canonical_path
 
-- rework patch to eliminate GETPPID
-- rework patch to eliminate 0x80
-- add in Pavel Machek's stuff
-
 - profile/optimize python (try to continue processes ASAP)
 - interactive sandbox trick (Gtk+ interface)
 

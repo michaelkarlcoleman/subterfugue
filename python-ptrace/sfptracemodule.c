@@ -2,17 +2,23 @@
 
 /* $Header$ */
 
-/* mainloop speed-up code from Pavel Machek */
-
+/*
+ * mainloop speed-up code from Pavel Machek (3/00)
+ *
+ * added wait channel hack (3/00)
+ *
+ */
 
 #include <sys/ptrace.h>
 
 #include "Python.h"
 
 #define _USE_BSD
+#include <fcntl.h>
 #include <signal.h>
 #include <sys/reg.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -37,6 +43,94 @@ char call_ignored[MAXCALLNUMBER] = { 0 };
 
 int numignored = 0, numtraced = 0;
 
+
+/* returns a pointer to a static string with the wait channel, NULL on error
+ */
+static const char *
+waitchannel(int pid) {
+  /* Grab the wait channel from /proc/n/stat.  Unfortunately, that file cannot
+     be unambiguously parsed, so this may fail if more fields are added in
+     future kernels.
+  */
+
+#define WAITCHANNELSIZE 20
+  static char waitchannel[WAITCHANNELSIZE];
+  static char buf[2048];
+  char fn[32], *p;
+  int fd, result, fcount;
+
+  waitchannel[0] = 0;
+  sprintf(fn, "/proc/%d/stat", pid);
+  fd = open(fn, O_RDONLY); 
+  if (fd == -1)
+    return NULL;
+  result = read(fd, buf, 2048);
+  if (result < 1)
+    return NULL;
+  close(fd);
+
+#define WCHANFIELD (-5)
+  for (fcount = WCHANFIELD, p = buf + result - 1; p >= buf; p--)
+    if (*p == ' ')
+      if (++fcount == 0)
+	break;
+
+  if (fcount)
+    return 0;
+  p++;
+  *(index(p, ' ')) = 0;
+  strncpy(waitchannel, p, WAITCHANNELSIZE);
+  waitchannel[WAITCHANNELSIZE-1] = 0;
+  return waitchannel;
+}
+
+/* returns 1 at callstop, 0 at signalstop, and -1 on error */
+static int
+atcallstop(int pid, int stopsig) {
+  /* The heuristic here is that the wait channel always has the same value for
+     syscall stops, for any given kernel run.  We learn its value at the first
+     stop which is not definitely a non-SIGTRAP signal stop.  This will fail
+     if the very first such stop is actually a SIGTRAP stop, but this seems
+     very unlikely in practice, and doesn't seem like something a rogue
+     program could cause.
+  */
+
+  static char waitchannelstop[WAITCHANNELSIZE] = "";
+  const char *result;
+
+  stopsig = stopsig & 0x7F;	/* ignore 0x80, if present */
+  
+  if (stopsig != SIGTRAP)
+    return 0;
+  if (!(result = waitchannel(pid)))
+    return -1;
+  /* fprintf(stderr, "waitchannel: %s\n", result); */
+  if (waitchannelstop[0] != 0)
+    return !strcmp(result, waitchannelstop);
+  strcpy(waitchannelstop, result);
+  return 1;			/* pretty good guess */
+}
+
+static char sfptrace_atcallstop__doc__[] = 
+"atcallstop(pid, stopsig) -> boolean\n\
+Indicate whether the process pid, which is stopped with stopsig, is at a\n\
+ system call stop (as opposed to a signal stop).";
+
+static PyObject *
+sfptrace_atcallstop(PyObject *self, PyObject *args)
+{
+  int pid, stopsig, result;
+
+  if (!PyArg_Parse(args, "(ii)", &pid, &stopsig))
+    return NULL;
+
+  result = atcallstop(pid, stopsig);
+  if (result == -1)
+    return posix_error();
+  return Py_BuildValue("i", result);
+}
+
+
 static char sfptrace_mainloop__doc__[] = 
 "mainloop(pid) -> (wpid, status, beforecall)\n\
 Run the optimized main loop until something interesting happens.\n\
@@ -46,10 +140,10 @@ Process 'pid' must already be known (in allflags), and 'insyscall' and\n\
 static PyObject *
 sfptrace_mainloop(PyObject *self, PyObject *args)
 {
-  int pid, wpid, status, scno, eax;
+  int pid, wpid, status, scno, eax, waitchannelhack;
   int beforecall = -1;
 
-  if (!PyArg_Parse(args, "(i)", &pid))
+  if (!PyArg_Parse(args, "(ii)", &pid, &waitchannelhack))
     return NULL;
 
   numtraced++;
@@ -71,9 +165,17 @@ sfptrace_mainloop(PyObject *self, PyObject *args)
     if (!WIFSTOPPED(status)) 
       goto giveup;
     DBG("checking SIGTRAP\n");
-    if (WSTOPSIG(status) != (SIGTRAP | 0x80))
-      goto giveup;
-  
+    if (!waitchannelhack) {
+      if (WSTOPSIG(status) != (SIGTRAP | 0x80))
+	goto giveup;
+    } else {
+      int r = atcallstop(pid, WSTOPSIG(status));
+      if (r == -1)
+	return posix_error();	/* shouldn't happen, but tell the caller */
+      if (!r)
+	goto giveup;
+    }
+      
     /* Only check the system call number on the before stop, because some
        calls (e.g., sigreturn) stomp that number.  On the after stop, by the
        time we get here it "must" be okay to ignore this stop.  (Skipping
@@ -141,8 +243,9 @@ sfptrace_setignorecall(PyObject *self, PyObject *args)
 
 static PyMethodDef sfptrace_methods[] = {
 #define method(x) { #x, sfptrace_##x, METH_VARARGS, sfptrace_##x##__doc__ }
-	method(setignorecall),
+	method(atcallstop),
 	method(mainloop),
+	method(setignorecall),
 	{ NULL }		/* sentinel */
 };
 

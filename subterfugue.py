@@ -44,6 +44,9 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 -n, --failnice			allow kids to live on if sf aborts
 -h, --help			output help, including for TRICKs, and exit
 -V, --version			output version information and exit
+
+--waitchannelhack		kludge needed if running on unpatched linux 2.4
+--slowmainloop			disable fast C loop (for debugging)
 """,
 # -p, --attach=PID		attach to and trick process PID
 
@@ -58,12 +61,19 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 """ % VERSION,
 
 
+# this is the fd for the file specified by --output, if needed
+outputfileno = -1
+
+# this is where we stow a dup for stderr, if needed
+childerrfileno = -1
+
+
 def process_arguments(args):
     tricklist = []
     help = 0
     global flush_at_call
     flush_at_call = 1
-    global fastmainloop
+    global fastmainloop, waitchannelhack
     fastmainloop = 1
 
     trickpath = string.split(os.environ.get("TRICKPATH", ""), ':')
@@ -73,11 +83,12 @@ def process_arguments(args):
         options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
                                          ['debug', 'help', 'trick=', 'attach=',
                                           'version', 'output=', 'failnice',
-                                          'slowmainloop' ])
+                                          'slowmainloop', 'waitchannelhack' ])
     except getopt.error, e:
         usage()
         sys.exit(1)
 
+    _output = 0
     for opt, arg in options:
         if opt == '-t' or opt == '--trick':
             s = string.split(arg, ':', 1)
@@ -130,16 +141,34 @@ def process_arguments(args):
             version()
             sys.exit(0)
         elif opt == '-o' or opt == '--output':
-            try:
-                sys.stdout = open(arg, "w")
-            except IOError, e:
-                sys.exit("error opening %s (%s)" % (arg, e[1]))
+            if _output:
+                print('--output option can be specified at most once')
+                sys.exit(1)
+            _output = 1
+
+            global outputfileno
+            global childerrfileno
+            if re.match(r'[0-9]+', arg):
+                outputfileno = int(arg)
+                childerrfileno = os.dup(2) # preserve stderr for child
+                if childerrfileno == outputfileno:
+                    childerrfileno = os.dup(2)
+                    os.close(outputfileno)
+                os.dup2(outputfileno, 2)
+            else:
+                try:
+                    sys.stdout = open(arg, "w")
+                    outputfileno = sys.stdout.fileno()
+                except IOError, e:
+                    sys.exit("error opening %s (%s)" % (arg, e[1]))
             flush_at_call = 0
         elif opt == '-n' or opt == '--failnice':
             global failnice
             failnice = 1
         elif opt == '--slowmainloop':
             fastmainloop = 0
+        elif opt == '--waitchannelhack':
+            waitchannelhack = 1
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -206,7 +235,15 @@ def cleanup(tricklist):
     for trick, callmask, signalmask in tricklist:
         trick.cleanup()
 
+
+# enable ugly hack for those running unpatched 2.4
+waitchannelhack = 0
+# address of waitchannel for syscall stops (only used for waitchannelhack)
+waitchannelstop = -1
+
 def do_main(allflags):
+    global waitchannelhack, waitchannelstop
+
     sys.stdout = sys.stderr             # doesn't affect kids
 
     command, tricklist = process_arguments(sys.argv)
@@ -228,8 +265,27 @@ def do_main(allflags):
             sys.exit('error: could not trace child, maybe already traced?'
                      ' (%s)' % e)
 
-	# FIX: We really need to close fds here so that sandboxed app can not
-        # interfere with us
+        # Python leaves a fd open to its initial script, which we close here.
+        fddir = '/proc/self/fd/'
+        fds = filter(lambda n: n > 2, map(int, os.listdir('/proc/self/fd/')))
+        for fd in fds:
+            try:
+                if os.readlink('%s%s' % (fddir, fd)) == sys.argv[0]:
+                    if debug():
+                        print 'closing', fd
+                    os.close(fd)
+            except OSError, e:
+                # one fd is used to listdir and it will be gone before readlink
+                pass
+        # Also close --output fd
+        global outputfileno
+        if outputfileno >= 0:
+            os.close(outputfileno)
+
+        if childerrfileno >= 0:
+            os.dup2(childerrfileno, 2)
+            os.close(childerrfileno)
+
         try:
             os.execvp(command[0], command)
         except OSError, e:
@@ -284,7 +340,8 @@ def do_main(allflags):
 
         try:
             if fastmainloop:
-                wpid, status, beforecall = sfptrace.mainloop(lastpid)
+                wpid, status, beforecall = sfptrace.mainloop(lastpid,
+                                                             waitchannelhack)
                 #print 'sfptrace.mainloop(%s) -> (%s, %s, %s)' % (lastpid, wpid, status, beforecall)
             else:
                 wpid, status = os.waitpid(-1, os.WUNTRACED|os.WALL)
@@ -343,8 +400,8 @@ def do_main(allflags):
                     if e.errno == errno.EIO:
                         # kernel doesn't have this patch (which means it'd
                         # better have the old one)
-                        print "warning: using tracesysgood backward compatibility mode"
-                        pass
+                        if debug():
+                            print "warning: using tracesysgood backward compatibility mode"
                     else:
                         sys.exit("%s settracesysgood error [%s]" % (sys.argv[0], e))
 
@@ -353,7 +410,13 @@ def do_main(allflags):
                 continue
 
             stopsig = os.WSTOPSIG(status)
-            if stopsig != signal.SIGTRAP | 0x80:
+
+            if waitchannelhack:
+                callstop = sfptrace.atcallstop(wpid, stopsig)
+            else:
+                callstop = stopsig == signal.SIGTRAP | 0x80
+
+            if not callstop:
                 sig = trace_signal(wpid, flags, tricklist, stopsig)
                 if (sig == signal.SIGSTOP or sig == signal.SIGTSTP
                     or sig == signal.SIGTTIN or sig == signal.SIGTTOU):
