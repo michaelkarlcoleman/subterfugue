@@ -126,6 +126,7 @@ class p_linux_i386_trick(Trick):
                 return -errno_internal.ERESTARTSYS # like wait
         elif call == 'fork' or call == 'clone' or call == 'vfork':
             ppid, tag = state
+            print 'pid %s call %s result %s ppid %s tag %s' % (pid, call, result, ppid, tag)
             if result < 0:
                 # no new child was created, so don't expect it
                 del self.allflags[ppid]['newchildflags'][tag]

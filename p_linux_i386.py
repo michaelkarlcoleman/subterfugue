@@ -10,6 +10,7 @@ import sys
 import types
 
 import ptrace
+import sfptrace
 
 from debug import debug
 
@@ -39,6 +40,7 @@ _skipcallafter = {}
 
 # XXX: does this weedout mask optimization actually speed things up enough to
 # be worth the complexity?
+# XXX: this doesn't belong in a platform-specific file
 def set_weedout_masks(tricklist):
     global _call_weedout_mask, _signal_weedout_mask
 
@@ -62,6 +64,10 @@ def set_weedout_masks(tricklist):
     # XXX: does this speed up lookups?
     _call_weedout_mask = tuple(_call_weedout_mask)
     _signal_weedout_mask = tuple(_signal_weedout_mask)
+
+    for n in xrange(ncall):
+        if _call_weedout_mask[n] == 0:
+            sfptrace.setignorecall(n, 1)
 
 
 def peek_args(pid, nargs):

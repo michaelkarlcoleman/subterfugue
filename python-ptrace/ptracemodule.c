@@ -1,6 +1,6 @@
 /* python interface to the linux ptrace system call */
 
-/* $Header */
+/* $Header$ */
 
 
 #include <sys/ptrace.h>

@@ -6,7 +6,9 @@
 .PHONY : all compilepy dist pushdist clean distclean
 
 
-all : python-ptrace/ptracemodule.so sf compilepy
+MODULES = python-ptrace/ptracemodule.so python-ptrace/sfptracemodule.so 
+
+all : $(MODULES) sf compilepy
 
 sf : sf.in
 	sed -e 's|^\(SUBTERFUGUE_ROOT=\).*$$|\1'$$PWD'|' $< > $@ || rm $@
@@ -17,6 +19,9 @@ compilepy ::
 	python -O -c 'import compileall; compileall.main()' .
 
 python-ptrace/ptracemodule.so : python-ptrace/ptracemodule.c
+	cd python-ptrace && make -f Makefile.pre.in boot && make
+
+python-ptrace/sfptracemodule.so : python-ptrace/sfptracemodule.c
 	cd python-ptrace && make -f Makefile.pre.in boot && make
 
 version := $(shell python version.py | awk '{ print $$1 }')

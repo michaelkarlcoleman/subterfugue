@@ -22,6 +22,7 @@ import sys
 import traceback
 
 import ptrace
+import sfptrace
 
 from debug import *
 from version import VERSION
@@ -62,6 +63,8 @@ def process_arguments(args):
     help = 0
     global flush_at_call
     flush_at_call = 1
+    global fastmainloop
+    fastmainloop = 1
 
     trickpath = string.split(os.environ.get("TRICKPATH", ""), ':')
     sys.path = filter(os.path.isdir, trickpath) + sys.path
@@ -69,7 +72,8 @@ def process_arguments(args):
     try:
         options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
                                          ['debug', 'help', 'trick=', 'attach=',
-                                          'version', 'output=', 'failnice' ])
+                                          'version', 'output=', 'failnice',
+                                          'slowmainloop' ])
     except getopt.error, e:
         usage()
         sys.exit(1)
@@ -134,6 +138,8 @@ def process_arguments(args):
         elif opt == '-n' or opt == '--failnice':
             global failnice
             failnice = 1
+        elif opt == '--slowmainloop':
+            fastmainloop = 0
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -222,6 +228,8 @@ def do_main(allflags):
             sys.exit('error: could not trace child, maybe already traced?'
                      ' (%s)' % e)
 
+	# FIX: We really need to close fds here so that sandboxed app can not
+        # interfere with us
         try:
             os.execvp(command[0], command)
         except OSError, e:
@@ -261,12 +269,24 @@ def do_main(allflags):
 
     set_weedout_masks(tricklist)
 
+    global fastmainloop
+    lastpid = -1
+
     while 1:
         if flush_at_call:
             sys.stdout.flush()
 
+	if (fastmainloop and
+            (not allflags.has_key(lastpid)
+             or allflags[lastpid].has_key('startup')
+             or allflags[lastpid].has_key('insyscall'))):
+            lastpid = -1
+
         try:
-            wpid, status = os.waitpid(-1, os.WUNTRACED|os.WALL)
+            if fastmainloop:
+                wpid, status, beforecall = sfptrace.mainloop(lastpid)
+            else:
+                wpid, status = os.waitpid(-1, os.WUNTRACED|os.WALL)
         except OSError, e:
             if e.errno == errno.ECHILD:
                 cleanup(tricklist)
@@ -277,6 +297,12 @@ def do_main(allflags):
             # this can't happen (?) because we're ignoring SIGINT
             sys.exit("interrupted")
                 
+        # print 'Got ', wpid, status, beforecall
+
+        if fastmainloop and not beforecall:
+            allflags[lastpid]['insyscall'] = 1
+        lastpid = wpid
+
         if not allflags.has_key(wpid):
             # new child
             # FIX: what happens if parent or child already dead?
@@ -284,6 +310,13 @@ def do_main(allflags):
             ppid = ptrace.peekuser(wpid, EDI)
             if debug():
                 print "[%s] new child, parent is %s" % (wpid, ppid)
+
+            # ppid could be 1 here if the parent died very quickly and init
+            # inherited the child.  With the new tagging scheme, though, we'll
+            # still have the old ppid here, even though the process is gone.
+            # So, for example, depending on the order of events,
+            # "allflags[ppid]" may no longer exist.  FIX
+            assert ppid > 1
             if ppid > 1:
                 tag = ptrace.peekuser(wpid, EBP)
                 allflags[wpid] = allflags[ppid]['newchildflags'][tag]
