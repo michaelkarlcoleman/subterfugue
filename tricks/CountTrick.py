@@ -32,10 +32,14 @@ class Count(Trick):
     def cleanup(self):
         for pid in self.callcount.keys():
             print 'process %s\n' % pid
-            for call, count in self.callcount[pid].items():
+            callcounts = self.callcount[pid].items()
+            callcounts.sort(lambda x,y: y[1] - x[1])
+            for call, count in callcounts:
                 print '%6d\t%s' % (count, call)
             if self.sigcount.has_key(pid):
                 print ''
-                for sig, count in self.sigcount[pid].items():
+                sigcounts = self.sigcount[pid].items()
+                sigcounts.sort(lambda x,y: y[1] - x[1])
+                for sig, count in sigcounts:
                     print '%6d\t%s' % (count, sig)
             print '\n'
