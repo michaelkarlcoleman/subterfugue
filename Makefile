@@ -43,17 +43,23 @@ version := $(shell python version.py | awk '{ print $$1 }')
 distdir := subterfugue-$(version)
 distfile := $(distdir).tgz
 
+debfile := subterfugue_$(version)-1_i386.deb
+rpmfile := subterfugue-$(version)-1.i386.rpm
+
 dist :: 
 	$(MAKE) distclean
 	rm -f ../$(distdir)
-	cd .. && ln -s subterfugue $(distdir) && tar cfh - --exclude='*/CVS' $(distdir) \
+	cd .. && ln -s subterfugue $(distdir) \
+		&& tar cfh - --exclude='*/CVS' $(distdir) \
 		| gzip --best > $(distfile)
 	rm -f ../$(distdir)
 	@echo 'Did you do a "cvs update/commit" first???'
 	@echo 'Do a "cvs rtag -FR release-$(version) <modules>'
 
 pushdist ::
-	cd .. && ncftpput -V download.sourceforge.net /incoming $(distfile)
+	[ -e ../$(distfile) -a -e ../$(debfile) -a -e ../$(rpmfile) ] || exit 1
+	cd .. && ncftpput -V download.sourceforge.net /incoming \
+		$(distfile) $(debfile) $(rpmfile)
 
 install ::
 	install -d $(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
