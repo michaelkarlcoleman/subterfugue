@@ -57,22 +57,22 @@ def hard_kill(pid):
 	poke_args(pid, 6, [0, 0, 0, 0, 0, 0])	
     except OSError, e:
 	print "warning: attempt to annul last syscall by zapping args failed" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
     try:
 	ptrace.pokeuser(pid, ORIG_EAX, _badcall)
     except OSError, e:
 	print "warning: attempt to annul last syscall" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
     try:
         ptrace.kill(pid)
     except OSError, e:
 	print "warning: attempt to ptrace.kill process failed" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
     except:
         # XXX: should we really catch this?  we shouldn't be absorbing
         # arbitrary exceptions; this will cause trouble
 	print "warning: attempt to ptrace.kill process failed strangely" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
         raise
 
     try: 
@@ -81,11 +81,25 @@ def hard_kill(pid):
     	os.kill(pid, signal.SIGKILL)
     except OSError, e:
 	print "warning: attempt to os.kill process failed" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
     except:
         # XXX: as above
 	print "warning: attempt to os.kill process failed strangely" \
-              + " (pid=%s, error=%s)" % (pid, e)
+              " (pid=%s, error=%s)" % (pid, e)
+        raise
+ 
+    try: 
+    # SIGCONT, so that if child was sigstopped it actually dies
+    # XXX: doesn't the kernel always wake up SIGKILLed processes?
+    # XXX: will this print a warning if the SIGKILL has already killed the process?
+    	os.kill(pid, signal.SIGCONT)
+    except OSError, e:
+	print "warning: attempt to os.kill process failed" \
+              " (pid=%s, error=%s)" % (pid, e)
+    except:
+        # XXX: as above
+	print "warning: attempt to os.kill process failed strangely" \
+              " (pid=%s, error=%s)" % (pid, e)
         raise
  
     print "process %s is dead (we hope)" % pid

@@ -59,7 +59,7 @@ class Paranoia(Trick):
 # Syscalls that we check elsewhere -- filehandle operations are checked at open() time
 
 'read' : 1, 'lseek' : 1, 'dup' : 1, 'pipe' : 1, 'times' : 1, 'ioctl' : 1, 'select' : 1, 'oldselect' : 1, 'chdir' : 1, 'readlink' : 1, 
-'readdir' : 1, 'mmap' : 1, 'munmap' : 1, 'ftruncate' : 1, 'fstat' : 1, 'fchdir' : 1, 'llseek' : 1, 'getdents' : 1, 
+'readdir' : 1, 'mmap' : 1, 'mmap2' : 1, 'munmap' : 1, 'ftruncate' : 1, 'fstat' : 1, 'fchdir' : 1, 'llseek' : 1, 'getdents' : 1, 
 'flock' : 1, 'msync' : 1, 'readv' : 1, 'writev' : 1, 'mremap' : 1, 'read' : 1, 'pwrite' : 1, 'sendfile' : 1, 'write' : 1,
 '_llseek' : 1, 
 
@@ -83,7 +83,8 @@ class Paranoia(Trick):
 
     def callbefore(self, pid, call, args):
 	print 'My paranoia does not allow me to allow ', call
-	return (None, -errno.EPERM, None, None)
+	# EPERM does not work here -- libc will not retry on fstat64() and similar
+	return (None, -errno.ENOSYS, None, None)
 
     def callmask(self):
 	mask = {};
@@ -95,7 +96,7 @@ class Paranoia(Trick):
         return mask
 
     def tricksignalmask(self):
-	return { 'SIGTERM' : 1 }
+	return { 'SIGTERM' : 1, 'SIGINT' : 1 }
 
     def tricksignal(self, signo):
 	print 'Paranoia: got signal'

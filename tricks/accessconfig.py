@@ -49,7 +49,7 @@ def readconfig(object, configfile, method, configname):
 	    var = re.search('\$[a-zA-Z]+', line)
 	    if not var: break
 	    var   = line[var.start()+1:var.end()]
-	    print 'Should work with variable ', var, ' containing ', posix.environ[var]
+#	    print 'Should work with variable ', var, ' containing ', posix.environ[var]
 	    line = re.sub('\$'+var, posix.environ[var], line)
 
 	if not re.match('^'+configname, line): continue

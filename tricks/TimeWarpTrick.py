@@ -11,7 +11,7 @@
 # real time, or at least that it's being hoodwinked.  For example, it can
 # examine '/proc/uptime', stat files, etc.  It also suffers from the volatile
 # memory problem; i.e., other threads can read the true time during a brief
-# race interval.
+# race interval and discover that we're playing tricks.
 
 # FIX: are we handling time deltas correctly for all calls?
 

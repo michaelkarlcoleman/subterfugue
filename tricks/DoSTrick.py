@@ -59,6 +59,17 @@ class DoS(Trick):
 	if options.has_key('maxproc'):
 	    self.maxproc = options['maxproc']
 
+    def mmap(self, pid, size):
+	global nchildren, lastpid, lastbrk, grace
+	if (pid == lastpid) and (grace > size):
+#	    print 'size = ', size, ' grace = ', grace
+	    grace = grace - size
+	    return (0, None, None, None)
+
+	lastpid = pid
+	grace = 1024*1024	# We actually allow TWICE as much
+	return (1, None, None, None)
+
     def callbefore(self, pid, call, args):
 	global nchildren, lastpid, lastbrk, grace
 	if call == 'mmap2':
@@ -86,22 +97,19 @@ class DoS(Trick):
 	if (call == 'munmap'):
 	    return (0, None, None, None)
 
-	assert call == 'mmap', 'got %s, expected mmap' % call
+	if (call == 'mmap2'):
+	    return self.mmap(pid, args[1])
+
+	if (call == 'mmap'):
+	    params = Memory.getMemory(pid).peek(args[0], 8)
+	    params = list(params)
 # People can actually play races on us at this point.
 # But as this is only Denial of Service protection, and as race succeeds
 # only very seldom, it is probably not important.
-# We could turn mmap into mmap2 and problem would be gone...
-	params = Memory.getMemory(pid).peek(args[0], 8)
-	params = list(params)
-	size = getint(params, 4)	# We need second argument
-	if (call == 'mmap') and (pid == lastpid) and (grace > size):
-#	    print 'size = ', size, ' grace = ', grace
-	    grace = grace - size
-	    return (0, None, None, None)
+# If you want to avoid races, use another trick to convert mmap into mmap2
+	    return self.mmap(pid, getint(params, 4))
 
-	lastpid = pid
-	grace = 1024*1024	# We actually allow TWICE as much
-	return (1, None, None, None)
+	raise 'Impossible: unknown syscall in DoStrick'
 
     def callafter(self, pid, call, result, state):
 	from subterfugue import allflags
