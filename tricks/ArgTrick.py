@@ -2,6 +2,7 @@
 
 #	$Header$
 
+from BoxTrick import Box
 from time import *
 
 import copy
@@ -21,50 +22,10 @@ import p_linux_i386
 import tricklib
 import re
 
-# FIXME: we need to add O_NOFOLLOW to open's
-# FIXME: what do we do with creat()?
+# hardlinks look pretty good at avoiding anything path-based, do they?
+# But that's okay: we require full permissions for harlink to happen
 
-# Copied from SimplePathSandbox
-_callaccess = {
-    'open' : ('w',),                    # conservative approximation
-    'creat' : ('w',),
-    'link' : ('rl', 'wl'),
-    'unlink' : ('wl',),
-    'execve' : ('r',),
-    'chdir' : ('r',),
-    'mknod' : ('w',),
-    'chmod' : ('w',),
-    'lchown' : ('wl',),
-    'oldstat' : ('r',),
-    'mount' : ('w',),
-    'oldumount' : ('w',),
-    'access' : ('r',),
-    'rename' : ('wl', 'wl'),
-    'mkdir' : ('wl',),
-    'rmdir' : ('wl',),
-    'acct' : ('w',),
-    'umount' : ('w',),
-    'chroot' : ('r',),
-    'symlink' : ('r', 'wl'),		# none here confuses things
-    'oldlstat' : ('rl',),
-    'readlink' : ('rl',),
-    'uselib' : ('r',),
-    'swapon' : ('w',),
-    'truncate' : ('w',),
-    'statfs' : ('r',),
-    'socketcall' : 1,                   # special case: access domain socket
-    'stat' : ('r',),
-    'lstat' : ('rl',),
-    'swapoff' : ('w',),
-    'chown' : ('w',),
-    'truncate64' : ('w',),
-    'stat64' : ('r',),
-    'lstat64' : ('rl',),
-    'lchown16' : ('wl',),
-    'chown16' : ('w',)
-    }
-
-class Arg(Trick):
+class Arg(Box):
     """This module makes sure arguments are fully qualified paths (by
     expanding them) stored in good memory (by copying them there). As
     a special bonus, it can do regexp substitution on parameters.
@@ -81,6 +42,7 @@ class Arg(Trick):
 """
 
     def __init__(self, options):
+	Box.__init__(self, options)
 	self._from = options.get('s1', [])
 	self._to = options.get('s2', [])
 
@@ -90,7 +52,7 @@ class Arg(Trick):
 	return p
 
     def callbefore(self, pid, call, args):
-        sign = _callaccess[call]
+        sign = self.callaccess[call]
 	tofree = [-1] * 6
         if not isinstance(sign, types.TupleType):
 	    return (tofree, None, None, None)
@@ -125,4 +87,4 @@ class Arg(Trick):
 	     	scratch.free(state[i])
 
     def callmask(self):
-	return _callaccess
+	return self.callaccess
