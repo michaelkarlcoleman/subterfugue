@@ -2,4 +2,5 @@
 
 ptrace ptracemodule.c
 svr4 svr4module.c
+linux linuxmodule.c
 _subterfugue _subterfuguemodule.c

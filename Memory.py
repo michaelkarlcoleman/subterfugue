@@ -14,6 +14,7 @@
 from StringIO import StringIO
 
 import errno
+import linux
 import os
 import ptrace
 
@@ -168,22 +169,5 @@ def _xtoi(s, offset):
 
 def _memseek(f, address):
     "seek in /proc/<n>/mem using signed address"
-    if address >= 0:
-        r = os.lseek(f, address, 0)
-        assert r == address
-    else:
-        # XXX: ugh--expose llseek to python and/or fix mem's size so it can
-        # seek backward from EOF instead
-        r = os.lseek(f, 0x7fffffff, 0)
-        assert r == 0x7fffffff
-        try:
-            os.lseek(f, 0x7fffffff, 1)
-        except OSError, e:
-            if e.errno != errno.EOVERFLOW:
-                raise
-        try:
-            os.lseek(f, address + 2, 1)
-        except OSError, e:
-            if e.errno != errno.EOVERFLOW:
-                raise
-
+    r = linux.lseek(f, address, 0)
+    assert r == address, '_memseek: %s != %s' % (r, address)

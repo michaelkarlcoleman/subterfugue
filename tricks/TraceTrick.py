@@ -12,17 +12,21 @@ from Memory import *
 import syscallmap
 
 
+_default_stringlimit = 32
+
 class Trace(Trick):
     def usage(self):
         return """
         Traces system calls, signals, and process exit (similar to strace(1)).
         The 'call' parameter may specify a list of system call names; in this
-        case, calls not in the list will not be traced.
-"""
+        case, calls not in the list will not be traced.  The 'string' parameter
+        specifies the truncation of string arguments (which are truncated to %s
+        characters by default).
+""" % _default_stringlimit
     
     def __init__(self, options):
         self.options = options
-        self._stringlimit = 32
+        self._stringlimit = _default_stringlimit
         if options.has_key('string'):
             self._stringlimit = options['string']
 
