@@ -157,7 +157,10 @@ class StateMachine:
             for rule_args,dst_state in self._states[state][call]:
                 if self.match_args(call, rule_args, args, mem):
                     return dst_state
-            return None
+            if anycall in self._states[state].keys():
+                return self._states[state][anycall][0][1]
+            else:
+                return None
         except KeyError, key: # no rule for this call(args)
             if anycall in self._states[state].keys():
                 return self._states[state][anycall][0][1]
@@ -245,7 +248,7 @@ class State(Trick):
             verbose = <n>           ... verbosity, default = 0
         
         example:
-            $ sf -t State:'config = State.conf' naughty_app
+            $ sf -t State:'config = "State.conf"' naughty_app
         
         Configuration file syntax: <mandatory> [voluntary]
         # comment
