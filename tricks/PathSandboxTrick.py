@@ -111,7 +111,7 @@ class PathSandbox(Box):
 # Common code, again
 	print 'SANDBOX MYPID ', os.getpid()
 	accessconfig.configfile = options.get('config', accessconfig.configfile)
-	accessconfig.Conf.tricksignal(self, signal.SIGHUP) # Force reconfiguration
+	accessconfig.tricksignal(self, signal.SIGHUP) # Force reconfiguration
 
     def onaccess(self, pid, call, r, op, path):
         followlink = 1 # FIXME
