@@ -19,4 +19,6 @@ say?  You probably shouldn't even be reading this.  Don't run this as root,
 except on a scratch system.  Don't use it to run programs where a loss of
 state might be disastrous (e.g., fetchmail).  Consider yourself warned.
 
-See 'http://subterfugue.org' and manpage in doc/sf.1 for more info.
+See 'http://subterfugue.org' and manpage in doc/sf.1 for more
+info. There's similar system (limited to security issues and requires
+kernel patch) called janus available at http://www.cs.berkeley.edu/~daw/janus/.

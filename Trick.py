@@ -144,3 +144,10 @@ class Trick:
         return """
         <no help available for this trick>
 """
+
+    def reconfig(self, filename, signal):
+	"""This method is called whenever python receives SIGUSR1 or
+	SIGUSR2. Tricks that read their config from config file should
+	reread config. Number of signal is passed down.
+	""" 
+	pass

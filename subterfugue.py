@@ -48,9 +48,14 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 -n, --failnice			allow kids to live on if sf aborts
 -h, --help			output help, including for TRICKs, and exit
 -V, --version			output version information and exit
+-c FILE				use given config file
 
 --waitchannelhack		kludge needed if running on unpatched linux 2.4
 --slowmainloop			disable fast C loop (for debugging)
+
+You can send several signals to running subterfugue:
+SIGTERM		kill all children and exit
+SIGHUP		reread config
 """,
 # -p, --attach=PID		attach to and trick process PID
 
@@ -59,8 +64,8 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 def version():
     print """subterfugue %s
 
-Copyright (C) 2000  Mike Coleman
-This is free software; see the source for copying conditions.  There is NO
+Copyright (C) 2000  Mike Coleman, Pavel Machek
+This is free software (GNU GPL, see the source for details).  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 """ % VERSION,
 
@@ -71,6 +76,16 @@ outputfileno = -1
 # this is where we stow a dup for stderr, if needed
 childerrfileno = -1
 
+# this is centralized file with configuration of subterfugue
+configfile = 'default'
+
+def user_signal(signo, b, tricklist):
+    global configfile
+    print 'Rereading config from ', configfile
+    if signo == signal.SIGTERM:
+        raise 'I was asked to kill my children'
+    for trick, callmask, signalmask in tricklist:
+	trick.reconfig(configfile, signo)
 
 def process_arguments(args):
     tricklist = []
@@ -84,7 +99,7 @@ def process_arguments(args):
     sys.path = filter(os.path.isdir, trickpath) + sys.path
 
     try:
-        options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
+        options, command = getopt.getopt(args[1:], 'dht:p:Vo:nc:',
                                          ['debug', 'help', 'trick=', 'attach=',
                                           'version', 'output=', 'failnice',
                                           'slowmainloop', 'waitchannelhack' ])
@@ -173,6 +188,9 @@ def process_arguments(args):
             fastmainloop = 0
         elif opt == '--waitchannelhack':
             waitchannelhack = 1
+	elif opt == '-c':
+	    global configfile
+	    configfile = arg
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -307,10 +325,14 @@ def do_main(allflags):
 
     # ignore these so we can continue to trace the child process(es) as they
     # react to these signals (is this bad?)
-    signal.signal(signal.SIGHUP, signal.SIG_IGN)
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGQUIT, signal.SIG_IGN)
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    signal.signal(signal.SIGHUP,  lambda a, b, t = tricklist: user_signal(a,b,t))
+    signal.signal(signal.SIGTERM, lambda a, b, t = tricklist: user_signal(a,b,t))
+    signal.signal(signal.SIGUSR1, lambda a, b, t = tricklist: user_signal(a,b,t))
+    signal.signal(signal.SIGUSR2, lambda a, b, t = tricklist: user_signal(a,b,t))
+
+    user_signal(signal.SIGHUP, 0, tricklist)
 
     #signal.signal(signal.SIGTSTP, signal.SIG_IGN)  ???
 
@@ -344,9 +366,7 @@ def do_main(allflags):
 
         try:
             if fastmainloop:
-                wpid, status, beforecall = sfptrace.mainloop(lastpid,
-                                                             waitchannelhack)
-                #print 'sfptrace.mainloop(%s) -> (%s, %s, %s)' % (lastpid, wpid, status, beforecall)
+                wpid, status, beforecall = sfptrace.mainloop(lastpid, waitchannelhack)
             else:
                 wpid, status = os.waitpid(-1, os.WUNTRACED|p_linux_i386.compat_WALL)
         except OSError, e:
@@ -359,11 +379,13 @@ def do_main(allflags):
 		    p_linux_i386.compat_WALL = 0
 		    fastmainloop = 0
 		    continue
+		if e.errno == errno.EINTR:
+		    print "Signal came"
+		    continue
 		else: sys.exit("%s wait error [%s]" % (sys.argv[0], e))
         except KeyboardInterrupt:
-            # this can't happen (?) because we're ignoring SIGINT
-            sys.exit("interrupted")
-                
+	    assert 0, 'cant happen, were ignoring SIGINT'
+
         if fastmainloop and not beforecall:
             allflags[lastpid]['insyscall'] = 1
             set_skipcallafter(lastpid)
