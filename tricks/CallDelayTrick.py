@@ -11,8 +11,11 @@ import time
 class CallDelay(Trick):
     def usage(self):
         return """
-        Add minimal delay between calls.
-        The 'delay' parameter is required (in seconds).
+        Prevents calling syscalls more often than the 'delay' parameter 
+        (required, in seconds).
+        The (voluntary) 'call' parameter is a list of interested-only calls.
+
+        sf -t CallDelay:'delay = 20 ; call = ["execve"]' <PROGRAM>
 """
     
     def __init__(self, options):
@@ -22,10 +25,22 @@ class CallDelay(Trick):
             sys.exit("error: %s: option required\nusage:%s"
                      % (self.__class__.__name__, self.usage()))
         self.last_time = -1
+        self.options = options
 
     def callbefore(self, pid, call, args):
         now = int(time.time())
         since = now - self.last_time
-        if since < self.delay:
-            time.sleep(self.delay - since)
+        delay = self.delay - since
+        if delay > 0:
+            print "Delaying %s() for %d seconds ..." % (call, delay)
+            time.sleep(delay)
         self.last_time = now
+
+    def callmask(self):
+        if self.options.has_key('call'):
+            mask = {}
+            for c in self.options['call']:
+                mask[c] = 1
+            return mask
+        else:
+            return None
