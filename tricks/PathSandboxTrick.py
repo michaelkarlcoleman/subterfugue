@@ -28,6 +28,15 @@ import time
 
 answer = 0;
 
+configfile = 'default'
+
+def user_signal(signo, b, trick):
+    global configfile
+    print 'Rereading config from ', configfile
+    if signo == signal.SIGTERM:
+        raise 'I was asked to kill my children'
+    trick.reconfig(configfile, signo)
+
 def question(q):
     global answer
     answer = 0
@@ -122,9 +131,15 @@ class PathSandbox(Box):
 	if re.match('^[a-z,]*ask', line):   self._ask =   [ path ] + self._ask
 
     def __init__(self, options):
+	global configfile
 	Box.__init__(self, options)
 	self._quiet = 0
 	print 'SANDBOX MYPID ', os.getpid()
+	signal.signal(signal.SIGHUP,  lambda a, b, t = self: user_signal(a,b,t))
+	signal.signal(signal.SIGTERM, lambda a, b, t = self: user_signal(a,b,t))
+	signal.signal(signal.SIGUSR1, lambda a, b, t = self: user_signal(a,b,t))
+	signal.signal(signal.SIGUSR2, lambda a, b, t = self: user_signal(a,b,t))
+	configfile = options.get('config',configfile)
 
     def onaccess(self, pid, call, r, op, path):
         followlink = 1 # FIXME

@@ -6,6 +6,17 @@
 
 #	$Header$
 
+
+# This trick doesn't cover a lot of ways that the process might determine the
+# real time, or at least that it's being hoodwinked.  For example, it can
+# examine '/proc/uptime', stat files, etc.  It also suffers from the volatile
+# memory problem; i.e., other threads can read the true time during a brief
+# race interval.
+
+# FIX: a nice feature would be to support time shift (for testing, or to
+# override buggy software expiration dates, for example).
+
+
 from Trick import Trick
 
 import Memory

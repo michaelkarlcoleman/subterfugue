@@ -4,21 +4,22 @@ Here's a list of things to improve or fix, not really in much of a particular
 order.
 
 
-- debug problem with clone? (netscape) in new kernel
+- need some kind of regression testing (use python regrtest package?)
 
-- note difference between class and module variables in tricks, and check that
-  current tricks use these correctly
+- check that we're handling things correctly when trick helper processes
+  report on wait
 
-- add distutils packaging (won't work with tricks?!)
-- need some kind of regression testing (use python regrtest package)
-
-- fix zombie accumulation problem
+- fix zombie accumulation problem (fixed by Pavel's kernel patch?)
 - fix /proc/self bug in canonical_path
 
 - interactive sandbox trick (Gtk+ interface)
   [Pavel is working on one: http://atrey.karlin.mff.cuni.cz/~pavel/sandbox-0.1.tar.gz]
 
 - why doesn't emacs' shell-command work? (uses vfork) [works for me --pavel]
+  (emacs does a vfork, and then sees the process exit via
+  wait4(WUNTRACED|WNOHANG), then checks with kill(pid, 0) to see if it's
+  really gone, but it's not, it's a zombie, which probably means we forgot to
+  wait for it somehow)
 - time tricks to make netscape, staroffice installer work better
 - handle volatile memory problem (which allows evasion)
 O finish project web page docs (motivation)
@@ -67,3 +68,5 @@ O finish project web page docs (motivation)
   are currently stopped in a PTRACE report
 
 - profile/optimize python
+
+- add distutils packaging? (won't work with tricks?!)

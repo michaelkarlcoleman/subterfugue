@@ -53,7 +53,8 @@ usage: sf [OPTIONS]... [<COMMAND> [<COMMAND-OPTIONS>...]]
 -h, --help			output help, including for TRICKs, and exit
 -V, --version			output version information and exit
 
---nowaitchannelhack		disable kludge if kernel appropriately patched
+--waitchannelhack		enable kludge (required for unpatched
+				2.3.99-2.4.0test9)
 --slowmainloop			disable fast C loop (for debugging)
 """,
 # -p, --attach=PID		attach to and trick process PID
@@ -90,7 +91,7 @@ def process_arguments(args):
         options, command = getopt.getopt(args[1:], 'dht:p:Vo:n',
                                          ['debug', 'help', 'trick=', 'attach=',
                                           'version', 'output=', 'failnice',
-                                          'slowmainloop', 'nowaitchannelhack' ])
+                                          'slowmainloop', 'waitchannelhack' ])
     except getopt.error, e:
         usage()
         sys.exit(1)
@@ -175,8 +176,8 @@ def process_arguments(args):
             failnice = 1
         elif opt == '--slowmainloop':
             fastmainloop = 0
-        elif opt == '--nowaitchannelhack':
-            waitchannelhack = 0
+        elif opt == '--waitchannelhack':
+            waitchannelhack = 1
         else:
             sys.exit("oops: option %s not yet implemented" % opt)
 
@@ -256,8 +257,8 @@ def all_kids_dead(tricklist):
     sys.exit(0)
 
 
-# enable ugly hack for those running unpatched 2.4
-waitchannelhack = 1
+# enable ugly hack for those running unpatched 2.3.99-2.4.0test9
+waitchannelhack = 0
 # address of waitchannel for syscall stops (only used for waitchannelhack)
 waitchannelstop = -1
 

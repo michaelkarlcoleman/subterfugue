@@ -7,6 +7,10 @@
 # implementations for all trick methods.  The default implementations
 # generally do nothing.
 
+# Note that class variables will be shared across multiple instances of the
+# same trick, whereas instance variables will not.
+
+
 class Trick:
     def __init__(self, options):
         """This method is invoked once before any child processes are

@@ -1,6 +1,15 @@
 # abstraction for process memory
 
+#       Copyright 2000 Mike Coleman <mkc@subterfugue.org>
+#       Copyright 2000 Pavel Machek <pavel@ucw.cz>
+#       Can be freely distributed and used under the terms of the GNU GPL.
+
 #	$Header$
+
+
+# Pavel's Memory22 class may go away, because right now a backport to 2.2.x
+# doesn't look very good.
+
 
 from StringIO import StringIO
 

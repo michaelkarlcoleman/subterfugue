@@ -49,8 +49,9 @@ direct \fBsf\fR output to a file, or a file descriptor (if FILE is a number)
 allow the command to continue if \fBsf\fR should abort (otherwise \fBsf\fR
 will try to \fBSIGKILL\fR all of the command's processes as it dies)
 .TP
-\fB\-\-nowaitchannelhack\fR
-skip the wait channel hack (faster, but only works on patched kernels)
+\fB\-\-waitchannelhack\fR
+use wait channel hack (slower, but required for unpatched kernels
+2.3.99\-2.4.0test9)
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 show debug output

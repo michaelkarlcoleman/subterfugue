@@ -1,6 +1,13 @@
 SUBTERFUGUE NEWS - notable changes between versions
 
 
+Version 0.? ("")
+
+* The TRACESYSGOOD patch is included in the kernel as of 2.4.0-test10, so
+  revert to disabling the "wait channel hack" by default.  (Only vanilla
+  2.3.99 through 2.4.0-test9 need it now.)
+
+
 Version 0.1.99a ("superstar")
 
 * Fix bug that causes sf to exit prematurely if only kids with parent init

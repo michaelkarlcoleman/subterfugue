@@ -1,7 +1,7 @@
 Source: subterfugue
 Section: utils
 Priority: optional
-Maintainer: Mike Coleman <mkc@users.sourceforge.net>
+Maintainer: Mike Coleman <mkc@debian.org>
 Build-Depends: debhelper, python-dev
 Standards-Version: 3.1.1
 

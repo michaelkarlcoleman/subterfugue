@@ -44,7 +44,7 @@ distdir := subterfugue-$(version)
 distfile := $(distdir).tgz
 
 debfile := subterfugue_$(version)-1_i386.deb
-rpmfile := subterfugue-$(version)-1.i386.rpm
+# rpmfile := subterfugue-$(version)-1.i386.rpm
 
 dist :: 
 	$(MAKE) distclean
@@ -57,9 +57,9 @@ dist ::
 	@echo 'Do a "cvs rtag -FR release-$(version) <modules>'
 
 pushdist ::
-	[ -e ../$(distfile) -a -e ../$(debfile) -a -e ../$(rpmfile) ] || exit 1
+	[ -e ../$(distfile) -a -e ../$(debfile) ] || exit 1
 	cd .. && ncftpput -V download.sourceforge.net /incoming \
-		$(distfile) $(debfile) $(rpmfile)
+		$(distfile) $(debfile)
 
 install ::
 	install -d $(DESTDIR)$(SUBTERFUGUE_ROOT)/tricks
